@@ -667,9 +667,8 @@
       right: 12px;
       z-index: 200;
       width: min(280px, calc(100vw - 24px));
-      max-height: min(70vh, 520px);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      max-height: min(72vh, 480px);
+      overflow: hidden;
       background: var(--surface);
       border: 2px solid var(--border);
       border-radius: var(--blob-md);
@@ -677,7 +676,7 @@
       padding: 10px;
       display: none;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       transform-origin: top right;
       animation: menuIn .22s var(--ease-spring) both;
       pointer-events: auto;
@@ -753,13 +752,32 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
+      /* ~5 rows visible, rest scroll — saves vertical space on mobile + desktop */
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: calc(5 * 40px + 8px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding-right: 2px;
+      scrollbar-width: thin;
+    }
+    .menu-actions-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .menu-actions-list::-webkit-scrollbar-thumb {
+      background: rgba(43, 36, 64, 0.22);
+      border-radius: 4px;
+    }
+    body.dark-mode .menu-actions-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
     }
 
     .menu-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 9px 12px;
+      padding: 8px 12px;
       border-radius: var(--blob-sm);
       background: transparent;
       border: none;
@@ -770,7 +788,8 @@
       text-align: left;
       transition: all .15s;
       width: 100%;
-      min-height: 38px;
+      min-height: 40px;
+      flex-shrink: 0;
     }
 
     .menu-item:hover,
@@ -797,9 +816,12 @@
     }
 
     .menu-theme-section {
-      padding: 6px 4px 10px;
+      flex-shrink: 0;
+      padding: 2px 0 8px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .menu-theme-label {
@@ -808,39 +830,50 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 8px;
+      flex-shrink: 0;
       padding-left: 4px;
+      min-width: 42px;
     }
 
     .theme-swatches {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 7px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      padding: 2px 2px 4px;
+      scrollbar-width: none;
+      flex: 1;
+      min-width: 0;
     }
+    .theme-swatches::-webkit-scrollbar { display: none; }
 
     .theme-swatch {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 10px;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform .15s var(--ease), border-color .15s, box-shadow .15s;
-      min-height: 36px;
+      min-height: 28px;
       padding: 0;
       position: relative;
     }
 
     .theme-swatch:hover {
-      transform: scale(1.08);
+      transform: scale(1.1);
     }
 
     .theme-swatch:active {
-      transform: scale(0.96);
+      transform: scale(0.94);
     }
 
     .theme-swatch.active {
       border-color: #fff;
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 4px 14px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
     .theme-swatch.active::after {
@@ -850,10 +883,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       color: #fff;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    }
+
+    .menu-status-card {
+      flex-shrink: 0;
     }
 
     /* ── SYSTEM PROMPT PANEL ── */
@@ -2959,7 +2996,15 @@
         left: 8px;
         width: auto;
         max-width: none;
-        max-height: min(68vh, 520px);
+        max-height: min(62vh, 420px);
+      }
+      .menu-actions-list {
+        max-height: calc(5 * 40px + 8px);
+      }
+      .theme-swatch {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
       }
 
       .setup-card {
