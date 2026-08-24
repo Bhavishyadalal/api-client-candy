@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <meta name="theme-color" content="#FFF8EE">
+  <meta name="theme-color" content="#1a1625">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
@@ -2844,12 +2844,17 @@
       }
 
       .header-title {
-        max-width: 140px;
+        max-width: 42vw;
         font-size: 0.82rem;
       }
 
       .header-model-badge {
-        max-width: 100px;
+        max-width: 28vw;
+      }
+
+      .chat-header {
+        min-height: 48px;
+        padding: max(6px, env(safe-area-inset-top)) 10px 6px 10px;
       }
 
       #sidebar {
@@ -2858,7 +2863,7 @@
         left: 0;
         bottom: 0;
         transform: translateX(-100%);
-        width: 82% !important;
+        width: min(86vw, 320px) !important;
         max-width: 320px;
         box-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
         z-index: 100;
@@ -2908,8 +2913,37 @@
         max-width: 92%;
       }
 
+      .messages-area {
+        padding: 12px 10px 20px;
+        gap: 14px;
+      }
+
+      .input-area {
+        padding: 6px 10px max(10px, env(safe-area-inset-bottom)) 10px;
+      }
+
+      .input-wrapper {
+        padding: 6px 8px 6px 10px;
+        border-radius: 22px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      }
+
+      .input-footer {
+        padding-top: 4px;
+      }
+
       .input-footer span:last-child {
         display: none;
+      }
+
+      .send-btn, .stop-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .attach-btn {
+        width: 34px;
+        height: 34px;
       }
 
       .conv-delete {
@@ -2918,6 +2952,102 @@
 
       .msg-actions {
         opacity: 0.9;
+      }
+
+      .header-menu-popover {
+        right: 8px;
+        left: 8px;
+        width: auto;
+        max-width: none;
+        max-height: min(68vh, 520px);
+      }
+
+      .setup-card {
+        max-width: 100%;
+        max-height: calc(100dvh - 16px);
+        border-radius: 20px;
+      }
+
+      .setup-card-body {
+        padding: 20px 16px 6px;
+      }
+
+      .setup-card-footer {
+        padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+      }
+
+      .empty-state {
+        padding: 24px 12px;
+        gap: 16px;
+      }
+
+      .empty-title {
+        font-size: 1.35rem;
+      }
+
+      .connected-chip {
+        top: -12px;
+        font-size: 0.68rem;
+      }
+
+      /* Music: icon-only FAB on mobile; full player as sheet when expanded */
+      #music-fab {
+        display: flex !important;
+      }
+
+      #cozy-player {
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: none;
+        bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 110;
+        max-height: min(42vh, 320px);
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #cozy-player.collapsed,
+      #cozy-player.mobile-icon-only {
+        display: none !important;
+      }
+
+      #cozy-player.mobile-expanded {
+        display: flex !important;
+      }
+
+      #cozy-player.dragging {
+        /* on mobile, expanded panel is fixed above input — skip free drag overlap */
+      }
+
+      .music-picker-card, .cursor-picker-card {
+        width: min(100%, 420px);
+        max-height: min(78dvh, 560px);
+        border-radius: 20px 20px 12px 12px;
+      }
+
+      #music-picker-overlay, #cursor-picker-overlay {
+        align-items: flex-end;
+        padding: 0 0 env(safe-area-inset-bottom);
+      }
+
+      .confirm-sheet {
+        max-width: min(100%, 360px);
+        margin: 0 12px;
+      }
+
+      /* Keep floating widgets clear of the composer */
+      #jumpToBottomBtn {
+        bottom: 12px;
+      }
+    }
+
+    /* Phones in landscape / very short screens */
+    @media (max-width: 768px) and (max-height: 500px) {
+      #cozy-player.mobile-expanded {
+        max-height: 55vh;
+        bottom: calc(56px + env(safe-area-inset-bottom)) !important;
       }
     }
 
@@ -3051,6 +3181,57 @@ body.custom-cursor-active input *, body.custom-cursor-active textarea * { cursor
 .music-track-row.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
 .music-empty-msg { padding: 16px; color: var(--muted); font-size: 0.85rem; text-align: center; }
 .cursor-picker-body { overflow-y: auto; padding: 14px; }
+
+
+/* Mobile music FAB — always available, visible mainly on small screens via media query */
+#music-fab {
+  display: none;
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 115;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--brand-grad);
+  color: #fff;
+  font-size: 22px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(255, 111, 165, 0.35), 0 2px 0 rgba(43,36,64,0.12);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform .15s, box-shadow .15s;
+}
+#music-fab:active { cursor: grabbing; transform: scale(0.96); }
+#music-fab.playing {
+  animation: musicFabPulse 1.8s ease-in-out infinite;
+}
+#music-fab.hidden-fab { display: none !important; }
+@keyframes musicFabPulse {
+  0%, 100% { box-shadow: 0 6px 18px rgba(255, 111, 165, 0.35); }
+  50% { box-shadow: 0 6px 22px rgba(255, 111, 165, 0.55), 0 0 0 6px rgba(255, 111, 165, 0.12); }
+}
+body.dark-mode #music-fab {
+  border-color: rgba(255,255,255,0.12);
+}
+#cozy-player-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 109;
+  background: rgba(10, 8, 18, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#cozy-player-backdrop.show { display: block; }
+@media (min-width: 769px) {
+  #music-fab { display: none !important; }
+  #cozy-player-backdrop { display: none !important; }
+}
 
 /* dark mode — full site, candy-night */
 body.dark-mode {
@@ -3231,7 +3412,7 @@ body.dark-mode .model-select-btn {
   </style>
 </head>
 
-<body>
+<body class="dark-mode">
 
   <!-- SIDEBAR -->
   <nav id="sidebar">
@@ -6182,6 +6363,11 @@ function buildMusicTrackList() {
 
 async function openMusicPicker() {
   try {
+    // On mobile, collapse expanded player so picker isn't stacked under it
+    if (isMobileLayout()) {
+      const p = document.getElementById('cozy-player');
+      if (p && p.classList.contains('mobile-expanded')) collapseCozyPlayerMobile();
+    }
     const ov = document.getElementById('music-picker-overlay');
     if (!ov) { toast('Music UI missing — hard refresh the page'); return; }
     ov.classList.add('open');
@@ -6229,21 +6415,101 @@ function stopMusic() {
   buildMusicTrackList();
 }
 
+function isMobileLayout() {
+  try { return window.matchMedia('(max-width: 768px)').matches; } catch (e) { return window.innerWidth <= 768; }
+}
+
+function showMusicFab() {
+  const fab = document.getElementById('music-fab');
+  if (!fab) return;
+  if (isMobileLayout()) {
+    fab.classList.remove('hidden-fab');
+    fab.style.display = 'flex';
+  } else {
+    fab.classList.add('hidden-fab');
+  }
+}
+
+function hideMusicFab() {
+  const fab = document.getElementById('music-fab');
+  if (!fab) return;
+  fab.classList.add('hidden-fab');
+}
+
+function setCozyBackdrop(on) {
+  const bd = document.getElementById('cozy-player-backdrop');
+  if (!bd) return;
+  if (on && isMobileLayout()) bd.classList.add('show');
+  else bd.classList.remove('show');
+}
+
 function showCozyPlayer() {
   const p = document.getElementById('cozy-player');
   if (!p) return;
-  p.classList.remove('hidden');
+  if (isMobileLayout()) {
+    // Mobile: icon only until user expands
+    p.classList.remove('hidden');
+    p.classList.add('mobile-icon-only');
+    p.classList.remove('mobile-expanded');
+    setCozyBackdrop(false);
+    showMusicFab();
+    const fab = document.getElementById('music-fab');
+    if (fab) fab.classList.toggle('playing', !!musicIsPlaying);
+  } else {
+    p.classList.remove('hidden', 'mobile-icon-only', 'mobile-expanded');
+    hideMusicFab();
+    setCozyBackdrop(false);
+  }
+}
+
+function expandCozyPlayerMobile() {
+  const p = document.getElementById('cozy-player');
+  if (!p) return;
+  p.classList.remove('hidden', 'mobile-icon-only', 'collapsed');
+  p.classList.add('mobile-expanded');
+  // Reset free-drag coords so panel sits in the safe CSS slot above the input
+  p.style.left = '';
+  p.style.right = '';
+  p.style.top = '';
+  p.style.bottom = '';
+  p.style.width = '';
+  setCozyBackdrop(true);
+  showMusicFab();
+  cozyPlayerCollapsed = false;
+  const btn = document.getElementById('cozy-player-collapse-btn');
+  if (btn) btn.textContent = '▾';
+}
+
+function collapseCozyPlayerMobile() {
+  const p = document.getElementById('cozy-player');
+  if (!p) return;
+  p.classList.add('mobile-icon-only');
+  p.classList.remove('mobile-expanded');
+  setCozyBackdrop(false);
+  showMusicFab();
+  const fab = document.getElementById('music-fab');
+  if (fab) fab.classList.toggle('playing', !!musicIsPlaying);
 }
 
 function dismissCozyPlayer() {
   stopMusic();
   const p = document.getElementById('cozy-player');
-  if (p) p.classList.add('hidden');
+  if (p) {
+    p.classList.add('hidden');
+    p.classList.remove('mobile-expanded', 'mobile-icon-only');
+  }
+  hideMusicFab();
+  setCozyBackdrop(false);
 }
 
 function toggleCozyPlayerCollapse() {
   const p = document.getElementById('cozy-player');
   if (!p) return;
+  if (isMobileLayout()) {
+    // On mobile, collapse = back to icon only
+    collapseCozyPlayerMobile();
+    return;
+  }
   cozyPlayerCollapsed = !cozyPlayerCollapsed;
   p.classList.toggle('collapsed', cozyPlayerCollapsed);
   const btn = document.getElementById('cozy-player-collapse-btn');
@@ -6254,10 +6520,15 @@ function updateCozyPlayer() {
   const trackEl = document.getElementById('cozy-player-track');
   const art = document.getElementById('cozy-player-art');
   const pp = document.getElementById('cozy-player-playpause-btn');
+  const fab = document.getElementById('music-fab');
   const t = musicTracks.find(x => x.file === musicCurrentFile);
   if (trackEl) trackEl.textContent = t ? t.title : (musicCurrentFile ? prettifyTrackName(musicCurrentFile.split('/').pop()) : '—');
   if (art) art.textContent = musicIsPlaying ? '♫' : '♪';
   if (pp) pp.textContent = musicIsPlaying ? '❚❚' : '▶';
+  if (fab) {
+    fab.textContent = musicIsPlaying ? '♫' : '♪';
+    fab.classList.toggle('playing', !!musicIsPlaying);
+  }
   updateCozySeekUI();
 }
 
@@ -6329,12 +6600,52 @@ function initCozyExtras() {
     }
   });
   initCozyPlayerDrag();
-  try {
-    if (localStorage.getItem('ai_dark_mode') === '1') {
-      document.body.classList.add('dark-mode');
-      syncDarkModeMenu();
+  initMusicFab();
+  const bd = document.getElementById('cozy-player-backdrop');
+  if (bd && !bd._bound) {
+    bd._bound = true;
+    bd.addEventListener('click', () => {
+      if (isMobileLayout()) collapseCozyPlayerMobile();
+    });
+  }
+  window.addEventListener('resize', () => {
+    // Re-sync fab vs full player when rotating / resizing
+    const p = document.getElementById('cozy-player');
+    if (!p || p.classList.contains('hidden')) {
+      hideMusicFab();
+      setCozyBackdrop(false);
+      return;
     }
-  } catch (e) {}
+    if (isMobileLayout()) {
+      if (!p.classList.contains('mobile-expanded')) {
+        p.classList.add('mobile-icon-only');
+        showMusicFab();
+        setCozyBackdrop(false);
+      }
+    } else {
+      p.classList.remove('mobile-icon-only', 'mobile-expanded');
+      hideMusicFab();
+      setCozyBackdrop(false);
+    }
+  });
+  // Default dark mode for new users; respect explicit light preference ('0')
+  try {
+    const pref = localStorage.getItem('ai_dark_mode');
+    if (pref === '0') {
+      document.body.classList.remove('dark-mode');
+    } else {
+      document.body.classList.add('dark-mode');
+      if (pref !== '1') {
+        try { localStorage.setItem('ai_dark_mode', '1'); } catch (e2) {}
+      }
+    }
+    const on = document.body.classList.contains('dark-mode');
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', on ? '#1a1625' : '#FFF8EE');
+    syncDarkModeMenu();
+  } catch (e) {
+    document.body.classList.add('dark-mode');
+  }
   try {
     const last = localStorage.getItem('ai_music_track');
     if (last) musicCurrentFile = last;
@@ -6347,7 +6658,7 @@ if (document.readyState === 'loading') {
   initCozyExtras();
 }
 
-// Draggable floating player — works expanded AND minimized
+// Draggable floating player — desktop free-drag; mobile uses fixed sheet + FAB
 function initCozyPlayerDrag() {
   const p = document.getElementById('cozy-player');
   if (!p || p._dragBound) return;
@@ -6355,7 +6666,7 @@ function initCozyPlayerDrag() {
   const handle = document.getElementById('cozyPlayerDragHandle') || p;
 
   function onDown(e) {
-    // Allow drag in both expanded + collapsed; skip interactive controls
+    if (isMobileLayout() && p.classList.contains('mobile-expanded')) return; // sheet stays anchored
     if (e.target.closest('button, input, a, textarea, select')) return;
     cozyDrag.active = true;
     cozyDrag.moved = false;
@@ -6368,6 +6679,7 @@ function initCozyPlayerDrag() {
   }
   function onMove(e) {
     if (!cozyDrag.active) return;
+    if (isMobileLayout() && p.classList.contains('mobile-expanded')) return;
     const pt = e.touches ? e.touches[0] : e;
     const x = pt.clientX - cozyDrag.ox;
     const y = pt.clientY - cozyDrag.oy;
@@ -6391,6 +6703,72 @@ function initCozyPlayerDrag() {
   window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('touchend', onUp);
 }
+
+// Mobile music FAB — drag to move; tap (without drag) expands full player
+function initMusicFab() {
+  const fab = document.getElementById('music-fab');
+  if (!fab || fab._bound) return;
+  fab._bound = true;
+  const state = { active: false, moved: false, ox: 0, oy: 0 };
+
+  function clampFab(x, y) {
+    const pad = 8;
+    const maxX = Math.max(pad, window.innerWidth - fab.offsetWidth - pad);
+    const maxY = Math.max(pad, window.innerHeight - fab.offsetHeight - pad - 56); // keep above home indicator / input
+    return {
+      x: Math.max(pad, Math.min(maxX, x)),
+      y: Math.max(pad, Math.min(maxY, y))
+    };
+  }
+
+  function onDown(e) {
+    state.active = true;
+    state.moved = false;
+    const rect = fab.getBoundingClientRect();
+    const pt = e.touches ? e.touches[0] : e;
+    state.ox = pt.clientX - rect.left;
+    state.oy = pt.clientY - rect.top;
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!state.active) return;
+    const pt = e.touches ? e.touches[0] : e;
+    const rawX = pt.clientX - state.ox;
+    const rawY = pt.clientY - state.oy;
+    const c = clampFab(rawX, rawY);
+    if (Math.abs(rawX - (parseFloat(fab.style.left) || rawX)) > 4 || Math.abs(rawY - (parseFloat(fab.style.top) || rawY)) > 4) {
+      state.moved = true;
+    }
+    fab.style.left = c.x + 'px';
+    fab.style.top = c.y + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    state.moved = true;
+  }
+  function onUp(e) {
+    if (!state.active) return;
+    state.active = false;
+    if (!state.moved) {
+      // Tap → open full player (or playlist if nothing loaded)
+      if (!musicCurrentFile && !musicTracks.length) {
+        openMusicPicker();
+      } else {
+        expandCozyPlayerMobile();
+        updateCozyPlayer();
+      }
+    }
+  }
+  fab.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  fab.addEventListener('touchstart', onDown, { passive: false });
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('touchend', onUp);
+}
+
+window.expandCozyPlayerMobile = expandCozyPlayerMobile;
+window.collapseCozyPlayerMobile = collapseCozyPlayerMobile;
+
 
 // ---- DARK MODE ----
 function toggleDarkMode() {
@@ -6602,6 +6980,10 @@ window.toggleDarkMode = toggleDarkMode;
       </div>
     </div>
   </div>
+
+  <!-- Mobile music FAB (draggable icon) -->
+  <button type="button" id="music-fab" class="hidden-fab" aria-label="Open music player" title="Music">♪</button>
+  <div id="cozy-player-backdrop" aria-hidden="true"></div>
 
   <!-- Floating cozy player (draggable when collapsed) -->
   <div class="hidden" id="cozy-player" role="region" aria-label="Cozy music player">
