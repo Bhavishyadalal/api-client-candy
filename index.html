@@ -86,6 +86,23 @@
       }
     }
 
+    /* Smooth theme / surface transitions */
+    html {
+      transition: none;
+    }
+    body, #sidebar, #main, .chat-header, .input-wrapper, .send-btn, .new-chat-btn,
+    .msg-bubble, .icon-btn, .brand-icon, .empty-icon, .header-model-badge,
+    .status-pill, .menu-item, .conv-item, .setup-card, .theme-pick-card,
+    .attach-btn, .header-menu-popover, #cozy-player, #music-fab {
+      transition: background-color .35s ease, background .35s ease, border-color .35s ease,
+        color .3s ease, box-shadow .35s ease, filter .35s ease;
+    }
+    /* Don't animate layout transforms on every frame for these */
+    .msg-row, .cursor, .typing-dots, .dot {
+      transition: none;
+    }
+
+
     *,
     *::before,
     *::after {
@@ -1374,6 +1391,16 @@
       font-weight: 600;
       transition: color .15s, background .15s, border-color .15s;
       min-height: 28px;
+      position: relative;
+      z-index: 2;
+      pointer-events: auto;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .code-header-actions {
+      pointer-events: auto;
+      position: relative;
+      z-index: 2;
     }
 
     .copy-btn:hover {
@@ -3228,6 +3255,91 @@ body.custom-cursor-active input *, body.custom-cursor-active textarea * { cursor
 .cursor-picker-body { overflow-y: auto; padding: 14px; }
 
 
+
+/* Theme picker popup */
+#theme-picker-overlay {
+  position: fixed; inset: 0; z-index: 320;
+  display: none; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(10, 8, 18, 0.55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+#theme-picker-overlay.open { display: flex; }
+.theme-picker-card {
+  width: min(100%, 380px);
+  max-height: min(80dvh, 520px);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--blob-lg, 28px);
+  box-shadow: var(--shadow-lift), 0 20px 50px rgba(0,0,0,0.25);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: confirmPop .2s var(--ease) both;
+}
+.theme-picker-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.theme-picker-head h3 {
+  font-family: var(--display); font-size: 1.05rem; font-weight: 800; margin: 0; color: var(--text);
+}
+.theme-picker-close {
+  width: 32px; height: 32px; border-radius: 10px; border: 2px solid var(--border);
+  background: var(--surface2); cursor: pointer; font-size: 16px; color: var(--muted);
+}
+.theme-picker-body { padding: 14px 16px 18px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.theme-picker-hint {
+  font-size: 0.78rem; color: var(--muted); margin: 0 0 12px; line-height: 1.4;
+}
+.theme-picker-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+}
+.theme-pick-card {
+  border: 2px solid var(--border);
+  border-radius: var(--blob-sm, 14px);
+  background: var(--surface2);
+  padding: 12px 12px 10px;
+  cursor: pointer; text-align: left;
+  transition: border-color .15s, transform .12s, box-shadow .15s;
+  display: flex; flex-direction: column; gap: 8px;
+  color: var(--text);
+}
+.theme-pick-card:hover { transform: translateY(-2px); border-color: var(--primary-border, var(--primary)); }
+.theme-pick-card:active { transform: scale(0.98); }
+.theme-pick-card.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  background: var(--primary-soft);
+}
+.theme-pick-preview {
+  height: 36px; border-radius: 10px;
+  display: flex; align-items: stretch; overflow: hidden;
+}
+.theme-pick-preview span { flex: 1; }
+.theme-pick-name {
+  font-size: 0.82rem; font-weight: 800; font-family: var(--display);
+}
+.theme-pick-card.active .theme-pick-name { color: var(--primary); }
+
+/* Noticeable theme change flash */
+@keyframes themeFlash {
+  0% { filter: saturate(1.45) brightness(1.1); }
+  40% { filter: saturate(1.2) brightness(1.04); }
+  100% { filter: none; }
+}
+body.theme-changing {
+  animation: themeFlash 0.65s ease-out;
+}
+
+
+@media (max-width: 768px) {
+  #theme-picker-overlay { align-items: flex-end; padding: 0 0 env(safe-area-inset-bottom); }
+  .theme-picker-card {
+    width: 100%; max-width: none;
+    border-radius: 20px 20px 12px 12px;
+    max-height: min(78dvh, 560px);
+  }
+  .theme-picker-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* Mobile music FAB — always available, visible mainly on small screens via media query */
 #music-fab {
   display: none;
@@ -3657,22 +3769,12 @@ body.dark-mode .model-select-btn {
         <div class="menu-token-stats" id="menuTokenStats">~0 tokens · $0.0000</div>
       </div>
 
-      <div class="menu-theme-section">
-        <div class="menu-theme-label">Theme</div>
-        <div class="theme-swatches" id="themeSwatches">
-          <button type="button" class="theme-swatch active" data-theme="pink" title="Candy Pink" style="background:linear-gradient(135deg,#FF6FA5,#FF8FC0)"></button>
-          <button type="button" class="theme-swatch" data-theme="sunset" title="Sunset" style="background:linear-gradient(135deg,#FF7A45,#FF9A6B)"></button>
-          <button type="button" class="theme-swatch" data-theme="mint" title="Mint" style="background:linear-gradient(135deg,#1FAE7A,#2FBF83)"></button>
-          <button type="button" class="theme-swatch" data-theme="lavender" title="Lavender" style="background:linear-gradient(135deg,#8A63F2,#A78BFA)"></button>
-          <button type="button" class="theme-swatch" data-theme="sun" title="Sunny" style="background:linear-gradient(135deg,#F2B705,#FCD34D)"></button>
-          <button type="button" class="theme-swatch" data-theme="blue" title="Sky" style="background:linear-gradient(135deg,#6C8BFF,#8AA4FF)"></button>
-          <button type="button" class="theme-swatch" data-theme="rose" title="Rose" style="background:linear-gradient(135deg,#FF5C7A,#FF8FA3)"></button>
-          <button type="button" class="theme-swatch" data-theme="candy" title="Classic Candy" style="background:linear-gradient(135deg,#FF6FA5,#6C8BFF)"></button>
-        </div>
-      </div>
-
       <div class="menu-actions-list">
 
+        <button type="button" class="menu-item" data-action="theme" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18c.7 0 1.2-.5 1.2-1.2 0-.3-.1-.6-.3-.8-.2-.2-.3-.5-.3-.8a1.7 1.7 0 0 1 1.7-1.7h2a5.5 5.5 0 0 0 0-11H12zm-5.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+          <span>Theme colors</span>
+        </button>
         <button type="button" class="menu-item" data-action="music" role="menuitem">
           <span style="font-size:16px">♪</span> Cozy music
         </button>
@@ -3989,7 +4091,7 @@ body.dark-mode .model-select-btn {
     // ── SCROLL STATE (declared early — used by updateAppHeight below,
     // which runs immediately on load, before the rest of the messages/
     // scroll-tracking code further down the file is reached) ──
-    const NEAR_BOTTOM_PX = 80;
+    const NEAR_BOTTOM_PX = 48;
     let userScrolledUp = false;
 
     function isNearBottom(el) {
@@ -4030,7 +4132,7 @@ body.dark-mode .model-select-btn {
       // Unconditionally forcing scrollTop = scrollHeight on every resize/scroll
       // event fought any attempt to scroll up while a response was streaming.
       const msgArea = document.getElementById('messages');
-      if (msgArea && isNearBottom(msgArea)) {
+      if (msgArea && !userScrolledUp && isNearBottom(msgArea)) {
         msgArea.scrollTop = msgArea.scrollHeight;
       }
     }
@@ -4117,6 +4219,7 @@ body.dark-mode .model-select-btn {
           else if (action === 'newchat') newConversation();
           else if (action === 'clear') clearChat();
           else if (action === 'clearkeys') clearAllSavedKeys();
+          else if (action === 'theme') { try { openThemePicker(); } catch (err) { console.error(err); toast('Theme picker error'); } }
           else if (action === 'music') { try { openMusicPicker(); } catch (err) { console.error(err); toast('Music picker error'); } }
           else if (action === 'cursors') { try { openCursorPicker(); } catch (err) { console.error(err); toast('Cursor picker error'); } }
           else if (action === 'dark') { try { toggleDarkMode(); } catch (err) { console.error(err); } }
@@ -4463,9 +4566,9 @@ body.dark-mode .model-select-btn {
         userBg: 'linear-gradient(135deg, #FF5C7A 0%, #E03E5C 100%)'
       },
       candy: {
-        primary: '#FF6FA5', primary2: '#FF8FC0', accent: '#6C8BFF',
-        glow: 'rgba(255, 111, 165, 0.35)', acglow: 'rgba(108, 139, 255, 0.28)',
-        userBg: 'linear-gradient(135deg, #FF6FA5 0%, #FF4D8D 100%)'
+        primary: '#FF4DB8', primary2: '#A78BFA', accent: '#38BDF8',
+        glow: 'rgba(255, 77, 184, 0.38)', acglow: 'rgba(56, 189, 248, 0.28)',
+        userBg: 'linear-gradient(135deg, #FF4DB8 0%, #7C3AED 55%, #38BDF8 100%)'
       }
     };
 
@@ -4478,9 +4581,8 @@ body.dark-mode .model-select-btn {
     }
 
     function applyThemePreset(name, fromClick) {
-      // Always fall back to candy pink if the saved/unknown name isn't in the map
-      // (old sessions may still have "violet" stored from the previous dark theme).
-      const t = THEME_PRESETS[name] || THEME_PRESETS.pink;
+      const key = (name in THEME_PRESETS) ? name : 'pink';
+      const t = THEME_PRESETS[key] || THEME_PRESETS.pink;
       if (!t) return;
       const root = document.documentElement;
       root.style.setProperty('--primary', t.primary);
@@ -4489,36 +4591,103 @@ body.dark-mode .model-select-btn {
       root.style.setProperty('--glow', t.glow);
       root.style.setProperty('--acglow', t.acglow);
       root.style.setProperty('--user-bg', t.userBg);
-      // Derived soft tints used across UI (new-chat, active conv, badges, focus rings)
       root.style.setProperty('--primary-soft', hexToRgba(t.primary, 0.14));
       root.style.setProperty('--primary-mid', hexToRgba(t.primary, 0.24));
       root.style.setProperty('--primary-border', hexToRgba(t.primary, 0.35));
       root.style.setProperty('--accent-soft', hexToRgba(t.accent, 0.18));
       root.style.setProperty('--think-bg', hexToRgba(t.accent, 0.06));
       root.style.setProperty('--think-border', hexToRgba(t.accent, 0.22));
+      // Brand surfaces that make the whole app feel retinted
+      root.style.setProperty('--brand-grad', `linear-gradient(135deg, ${t.primary} 0%, ${t.primary2} 45%, ${t.accent} 100%)`);
+      root.style.setProperty('--brand-grad-soft', `linear-gradient(135deg, ${hexToRgba(t.primary, 0.16)}, ${hexToRgba(t.accent, 0.12)})`);
+      root.style.setProperty('--shadow-pop', `4px 5px 0 ${t.primary}`);
 
-      // Update ambient glows dynamically
       const amb = document.querySelector('.ambient');
       const amb2 = document.querySelector('.ambient2');
       if (amb) amb.style.background = `radial-gradient(circle, ${t.glow} 0%, transparent 70%)`;
       if (amb2) amb2.style.background = `radial-gradient(circle, ${t.acglow} 0%, transparent 70%)`;
 
-      // Meta chrome color (mobile browser UI) — keep cream base for candy shell
+      // Browser chrome color follows theme (respect dark shell)
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', '#FFF8EE');
+      if (meta) {
+        const dark = document.body.classList.contains('dark-mode');
+        meta.setAttribute('content', dark ? '#1a1625' : t.primary);
+      }
 
-      try { localStorage.setItem('ai_theme_preset', name in THEME_PRESETS ? name : 'pink'); } catch (e) { }
+      try { localStorage.setItem('ai_theme_preset', key); } catch (e) { }
 
-      document.querySelectorAll('.theme-swatch').forEach(s => {
-        s.classList.toggle('active', s.getAttribute('data-theme') === (name in THEME_PRESETS ? name : 'pink'));
+      document.querySelectorAll('.theme-swatch, .theme-pick-card').forEach(s => {
+        const id = s.getAttribute('data-theme');
+        s.classList.toggle('active', id === key);
       });
 
-      // Noticeable feedback when user picks a theme
       if (fromClick) {
-        const label = (name in THEME_PRESETS ? name : 'pink');
-        toast('Theme: ' + label.charAt(0).toUpperCase() + label.slice(1));
+        document.body.classList.remove('theme-changing');
+        void document.body.offsetWidth;
+        document.body.classList.add('theme-changing');
+        setTimeout(() => document.body.classList.remove('theme-changing'), 600);
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        toast('Theme → ' + label);
       }
     }
+
+    const THEME_LABELS = {
+      pink: 'Candy Pink', sunset: 'Sunset', mint: 'Mint', lavender: 'Lavender',
+      sun: 'Sunny', blue: 'Sky', rose: 'Rose', candy: 'Classic Candy'
+    };
+    const THEME_PREVIEWS = {
+      pink: ['#FF6FA5', '#FF8FC0', '#6C8BFF'],
+      sunset: ['#FF7A45', '#FF9A6B', '#FFB43D'],
+      mint: ['#1FAE7A', '#2FBF83', '#6C8BFF'],
+      lavender: ['#8A63F2', '#A78BFA', '#FF6FA5'],
+      sun: ['#F2B705', '#FCD34D', '#FF6FA5'],
+      blue: ['#6C8BFF', '#8AA4FF', '#FF6FA5'],
+      rose: ['#FF5C7A', '#FF8FA3', '#FFB43D'],
+      candy: ['#FF6FA5', '#6C8BFF', '#FF8FC0']
+    };
+
+    function renderThemePickerGrid() {
+      const grid = document.getElementById('themePickerGrid');
+      if (!grid) return;
+      let saved = 'pink';
+      try { saved = localStorage.getItem('ai_theme_preset') || 'pink'; } catch (e) {}
+      if (!THEME_PRESETS[saved]) saved = 'pink';
+      grid.innerHTML = Object.keys(THEME_PRESETS).map(key => {
+        const cols = THEME_PREVIEWS[key] || [THEME_PRESETS[key].primary, THEME_PRESETS[key].primary2, THEME_PRESETS[key].accent];
+        const active = key === saved ? ' active' : '';
+        const label = THEME_LABELS[key] || key;
+        return `<button type="button" class="theme-pick-card${active}" data-theme="${key}" onclick="pickTheme('${key}')">
+          <div class="theme-pick-preview">${cols.map(c => `<span style="background:${c}"></span>`).join('')}</div>
+          <span class="theme-pick-name">${label}</span>
+        </button>`;
+      }).join('');
+    }
+
+    function openThemePicker() {
+      try {
+        closeHeaderMenu();
+        renderThemePickerGrid();
+        const ov = document.getElementById('theme-picker-overlay');
+        if (!ov) { toast('Theme UI missing — hard refresh'); return; }
+        ov.classList.add('open');
+        ov.style.display = 'flex';
+      } catch (err) {
+        console.error(err);
+        toast('Could not open theme picker');
+      }
+    }
+    function closeThemePicker() {
+      const ov = document.getElementById('theme-picker-overlay');
+      if (ov) { ov.classList.remove('open'); ov.style.display = 'none'; }
+    }
+    function pickTheme(name) {
+      applyThemePreset(name, true);
+      renderThemePickerGrid();
+    }
+
+    window.openThemePicker = openThemePicker;
+    window.closeThemePicker = closeThemePicker;
+    window.pickTheme = pickTheme;
 
     // Legacy single-color helper (kept for compatibility)
     function setTheme(color) {
@@ -4826,10 +4995,14 @@ body.dark-mode .model-select-btn {
 
     const PURIFY_CFG = {
       ADD_TAGS: ['button', 'iframe'],
-      ADD_ATTR: ['onclick', 'target', 'rel', 'class', 'id', 'style', 'aria-label', 'title'],
-      ALLOW_DATA_ATTR: false,
+      // Keep data-* used by code-block Preview/Copy/Download (delegation handlers)
+      ADD_ATTR: [
+        'target', 'rel', 'class', 'id', 'style', 'aria-label', 'title', 'type',
+        'data-action', 'data-id', 'data-ext', 'data-lang'
+      ],
+      ALLOW_DATA_ATTR: true,
       FORBID_TAGS: ['script', 'object', 'embed', 'link', 'meta', 'base', 'form'],
-      FORBID_ATTR: ['onerror', 'onload', 'onmouseover', 'onfocus', 'onmouseenter', 'onmouseleave']
+      FORBID_ATTR: ['onerror', 'onload', 'onmouseover', 'onfocus', 'onmouseenter', 'onmouseleave', 'onclick', 'onmouseout', 'onmousedown']
     };
 
     function sanitizeHtml(html) {
@@ -4887,12 +5060,28 @@ body.dark-mode .model-select-btn {
       return div.innerHTML;
     }
 
-    // Delegate code-block button actions (avoids inline onclick after sanitization)
+    // Delegate code-block button actions (no inline onclick — works after DOMPurify)
     document.addEventListener('click', function(ev) {
-      const btn = ev.target.closest && ev.target.closest('.copy-btn[data-action]');
+      const btn = ev.target.closest && ev.target.closest('button.copy-btn');
       if (!btn) return;
-      const action = btn.getAttribute('data-action');
-      const id = btn.getAttribute('data-id');
+      // Prefer data-action; fall back to button label if attrs were stripped
+      let action = btn.getAttribute('data-action');
+      if (!action) {
+        const label = (btn.textContent || '').trim().toLowerCase();
+        if (label === 'copy' || label === 'copied!') action = 'copy';
+        else if (label === 'download') action = 'download';
+        else if (label === 'preview') action = 'preview';
+      }
+      if (!action) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      let id = btn.getAttribute('data-id');
+      if (!id) {
+        const wrap = btn.closest('.code-block-wrap');
+        const pre = wrap && wrap.querySelector('pre[id]');
+        id = pre ? pre.id : null;
+      }
+      if (!id) { toast('Code block not found'); return; }
       if (action === 'copy') copyCode(btn, id);
       else if (action === 'download') downloadCode(id, btn.getAttribute('data-ext') || 'txt');
       else if (action === 'preview') renderCode(id, btn.getAttribute('data-lang') || 'html');
@@ -4900,17 +5089,56 @@ body.dark-mode .model-select-btn {
 
     function copyCode(btn, id) {
       const pre = document.getElementById(id);
-      if (!pre) return;
-      navigator.clipboard.writeText(pre.textContent).then(() => {
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-      });
+      if (!pre) { toast('Nothing to copy'); return; }
+      const text = pre.textContent || '';
+      const done = () => {
+        if (btn) {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        }
+        toast('Copied to clipboard');
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => {
+          // file:// or permission blocked — fallback
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            done();
+          } catch (e) {
+            toast('Copy failed');
+          }
+        });
+      } else {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          done();
+        } catch (e) {
+          toast('Copy failed');
+        }
+      }
     }
+    window.copyCode = copyCode;
 
     function downloadCode(id, ext) {
       const pre = document.getElementById(id);
-      if (!pre) return;
+      if (!pre) { toast('Nothing to download'); return; }
       const text = pre.textContent || '';
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -5055,7 +5283,13 @@ body.dark-mode .model-select-btn {
     let scrollRAF = null;
 
     function updateScrollState() {
-      userScrolledUp = !isNearBottom(msgBox);
+      // Sticky-bottom only when truly near the end; once user leaves, stay up
+      // until they return near the bottom (or hit jump-to-latest).
+      if (isNearBottom(msgBox)) {
+        userScrolledUp = false;
+      } else {
+        userScrolledUp = true;
+      }
       const btn = document.getElementById('jumpToBottomBtn');
       if (btn) btn.classList.toggle('visible', userScrolledUp);
     }
@@ -5067,6 +5301,32 @@ body.dark-mode .model-select-btn {
         scrollRAF = null;
       });
     }, { passive: true });
+
+    // Instantly unlock free-scroll when the user intends to go up (before
+    // the next stream chunk can snap them back down).
+    msgBox.addEventListener('wheel', (e) => {
+      if (e.deltaY < 0) {
+        userScrolledUp = true;
+        const btn = document.getElementById('jumpToBottomBtn');
+        if (btn) btn.classList.add('visible');
+      }
+    }, { passive: true });
+
+    let _touchY0 = null;
+    msgBox.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) _touchY0 = e.touches[0].clientY;
+    }, { passive: true });
+    msgBox.addEventListener('touchmove', (e) => {
+      if (_touchY0 == null || !e.touches || !e.touches[0]) return;
+      const dy = e.touches[0].clientY - _touchY0;
+      // Finger drag down → content moves up → user reading history
+      if (dy > 8) {
+        userScrolledUp = true;
+        const btn = document.getElementById('jumpToBottomBtn');
+        if (btn) btn.classList.add('visible');
+      }
+    }, { passive: true });
+    msgBox.addEventListener('touchend', () => { _touchY0 = null; }, { passive: true });
 
     function jumpToBottom() {
       userScrolledUp = false;
@@ -5279,6 +5539,7 @@ body.dark-mode .model-select-btn {
       // of forcibly snapping back to the bottom on every chunk.
       if (!force && userScrolledUp) return;
       requestAnimationFrame(() => {
+        if (!force && userScrolledUp) return;
         msgBox.scrollTop = msgBox.scrollHeight;
       });
     }
@@ -5852,10 +6113,11 @@ body.dark-mode .model-select-btn {
         const RENDER_MIN_MS = 80; // throttle full markdown re-parse while streaming
 
         function paintStream() {
-          // During stream: prefer cheap text paint for speed; final pass does full markdown
+          // Stick to bottom only if user hasn't scrolled away; never fight them.
+          const stick = !userScrolledUp;
           bubble.textContent = fullText;
           bubble.appendChild(cursor);
-          scrollBottom();
+          if (stick) scrollBottom(true);
         }
 
         while (!streamDone) {
@@ -5967,13 +6229,24 @@ body.dark-mode .model-select-btn {
     }
 
     function renderCode(id, lang) {
-      const code = document.getElementById(id).textContent;
-      if (lang === 'html') {
+      const el = document.getElementById(id);
+      if (!el) { toast('Code block not found'); return; }
+      const code = el.textContent || '';
+      const L = (lang || 'html').toLowerCase();
+      if (L === 'html') {
         openCanvas(code);
-      } else if (lang === 'mermaid') {
-        openCanvas(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:16px;background:#0e0e1a;color:#f0f0f8;"><pre class="mermaid">${code}</pre><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';mermaid.initialize({startOnLoad:true,theme:'dark'});<\/script></body></html>`);
+        toast('Preview opened');
+      } else if (L === 'mermaid') {
+        openCanvas(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:16px;background:#0e0e1a;color:#f0f0f8;"><pre class="mermaid">${code.replace(/</g, '&lt;')}</pre><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';mermaid.initialize({startOnLoad:true,theme:'dark'});<\/script></body></html>`);
+        toast('Mermaid preview opened');
+      } else {
+        // Generic preview: show as preformatted text in canvas
+        openCanvas('<pre style="margin:16px;white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px;color:#e5e7eb;background:#1e1a2e;padding:16px;border-radius:12px;">' +
+          code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>');
+        toast('Preview opened');
       }
     }
+    window.renderCode = renderCode;
 
     // ── BRANCH MESSAGE ──
     function branchMsg(btn) {
@@ -6179,6 +6452,7 @@ body.dark-mode .model-select-btn {
         closeModelPicker();
         closeMusicPicker();
         closeCursorPicker();
+        if (typeof closeThemePicker === 'function') closeThemePicker();
         const setup = document.getElementById('setup');
         if (setup && !setup.classList.contains('hidden')) {
           // only close setup if already connected
@@ -6683,6 +6957,11 @@ function initCozyExtras() {
   });
   initCozyPlayerDrag();
   initMusicFab();
+  const themeOv = document.getElementById('theme-picker-overlay');
+  if (themeOv && !themeOv._bound) {
+    themeOv._bound = true;
+    themeOv.addEventListener('click', (e) => { if (e.target === themeOv) closeThemePicker(); });
+  }
   const bd = document.getElementById('cozy-player-backdrop');
   if (bd && !bd._bound) {
     bd._bound = true;
@@ -7036,6 +7315,20 @@ window.applyCustomCursor = applyCustomCursor;
 window.toggleDarkMode = toggleDarkMode;
 
   </script>
+
+  <!-- Theme color picker -->
+  <div id="theme-picker-overlay" role="dialog" aria-label="Theme colors" aria-modal="true">
+    <div class="theme-picker-card">
+      <div class="theme-picker-head">
+        <h3>Theme colors</h3>
+        <button type="button" class="theme-picker-close" onclick="closeThemePicker()" aria-label="Close">✕</button>
+      </div>
+      <div class="theme-picker-body">
+        <p class="theme-picker-hint">Pick a palette — buttons, glows, and chat bubbles update live.</p>
+        <div class="theme-picker-grid" id="themePickerGrid"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Cozy music picker -->
   <div id="music-picker-overlay" role="dialog" aria-label="Cozy music">
