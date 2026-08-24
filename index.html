@@ -3205,15 +3205,53 @@ body.custom-cursor-active input *, body.custom-cursor-active textarea * { cursor
   user-select: none;
   -webkit-user-select: none;
   transition: transform .15s, box-shadow .15s;
+  padding: 0;
+  line-height: 0;
 }
 #music-fab:active { cursor: grabbing; transform: scale(0.96); }
 #music-fab.playing {
-  animation: musicFabPulse 1.8s ease-in-out infinite;
+  box-shadow: 0 6px 22px rgba(255, 111, 165, 0.55), 0 0 0 5px rgba(255, 111, 165, 0.14);
 }
 #music-fab.hidden-fab { display: none !important; }
-@keyframes musicFabPulse {
-  0%, 100% { box-shadow: 0 6px 18px rgba(255, 111, 165, 0.35); }
-  50% { box-shadow: 0 6px 22px rgba(255, 111, 165, 0.55), 0 0 0 6px rgba(255, 111, 165, 0.12); }
+#music-fab .music-wave-icon {
+  width: 26px;
+  height: 26px;
+  display: block;
+  overflow: visible;
+}
+#music-fab .music-wave-icon .bar {
+  transform-origin: center bottom;
+  transform-box: fill-box;
+  animation: none;
+}
+/* Idle: gentle breath */
+#music-fab:not(.playing) .music-wave-icon .bar {
+  animation: waveIdle 2.4s ease-in-out infinite;
+}
+#music-fab:not(.playing) .music-wave-icon .bar:nth-child(1) { animation-delay: 0s; }
+#music-fab:not(.playing) .music-wave-icon .bar:nth-child(2) { animation-delay: 0.15s; }
+#music-fab:not(.playing) .music-wave-icon .bar:nth-child(3) { animation-delay: 0.3s; }
+#music-fab:not(.playing) .music-wave-icon .bar:nth-child(4) { animation-delay: 0.15s; }
+#music-fab:not(.playing) .music-wave-icon .bar:nth-child(5) { animation-delay: 0s; }
+/* Playing: lively equalizer */
+#music-fab.playing .music-wave-icon .bar {
+  animation: wavePlay 0.85s ease-in-out infinite;
+}
+#music-fab.playing .music-wave-icon .bar:nth-child(1) { animation-delay: 0s; }
+#music-fab.playing .music-wave-icon .bar:nth-child(2) { animation-delay: 0.12s; }
+#music-fab.playing .music-wave-icon .bar:nth-child(3) { animation-delay: 0.24s; }
+#music-fab.playing .music-wave-icon .bar:nth-child(4) { animation-delay: 0.18s; }
+#music-fab.playing .music-wave-icon .bar:nth-child(5) { animation-delay: 0.06s; }
+@keyframes waveIdle {
+  0%, 100% { transform: scaleY(0.55); opacity: 0.85; }
+  50% { transform: scaleY(0.85); opacity: 1; }
+}
+@keyframes wavePlay {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #music-fab .music-wave-icon .bar { animation: none !important; }
 }
 body.dark-mode #music-fab {
   border-color: rgba(255,255,255,0.12);
@@ -6526,7 +6564,6 @@ function updateCozyPlayer() {
   if (art) art.textContent = musicIsPlaying ? '♫' : '♪';
   if (pp) pp.textContent = musicIsPlaying ? '❚❚' : '▶';
   if (fab) {
-    fab.textContent = musicIsPlaying ? '♫' : '♪';
     fab.classList.toggle('playing', !!musicIsPlaying);
   }
   updateCozySeekUI();
@@ -6982,7 +7019,13 @@ window.toggleDarkMode = toggleDarkMode;
   </div>
 
   <!-- Mobile music FAB (draggable icon) -->
-  <button type="button" id="music-fab" class="hidden-fab" aria-label="Open music player" title="Music">♪</button>
+  <button type="button" id="music-fab" class="hidden-fab" aria-label="Open music player" title="Music"><svg class="music-wave-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <line class="bar" x1="3" y1="8" x2="3" y2="16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <line class="bar" x1="7.5" y1="5" x2="7.5" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <line class="bar" x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <line class="bar" x1="16.5" y1="5" x2="16.5" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <line class="bar" x1="21" y1="8" x2="21" y2="16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+</svg></button>
   <div id="cozy-player-backdrop" aria-hidden="true"></div>
 
   <!-- Floating cozy player (draggable when collapsed) -->
