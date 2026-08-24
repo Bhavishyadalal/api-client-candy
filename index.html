@@ -5013,34 +5013,64 @@ body.dark-mode .model-select-btn {
       return String(html || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\bon\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
     }
 
-    function renderMarkdown(text) {
+    function escapeHtmlLite(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Close an unfinished ``` fence so partial code streams inside a real block
+    // (matches ChatGPT / DeepSeek live-code UX).
+    function closeOpenCodeFences(text) {
+      const t = String(text || '');
+      const ticks = t.match(/```/g);
+      if (ticks && ticks.length % 2 === 1) return t + '\n```';
+      return t;
+    }
+
+    function renderMarkdown(text, opts) {
       if (!text) return '';
-      const processed = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-        const id = 'cb' + Math.random().toString(36).slice(2, 8);
-        const raw = code.trim();
+      opts = opts || {};
+      const streaming = !!opts.streaming;
+      // While streaming, auto-close an open fence so incomplete code still
+      // renders inside a styled code-block instead of raw chat text.
+      const source = streaming ? closeOpenCodeFences(text) : text;
+      let blockIndex = 0;
+      const processed = source.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+        // Stable ids while streaming reduce DOM thrash / button flicker
+        const id = streaming ? ('cbstream' + (blockIndex++)) : ('cb' + Math.random().toString(36).slice(2, 8));
+        const raw = code.replace(/^\n/, '').replace(/\n$/, '');
         let highlighted;
         try {
-          if (lang && hljs.getLanguage(lang)) {
+          // Skip heavy highlightAuto on huge streaming chunks — keeps UI smooth
+          if (streaming && raw.length > 12000) {
+            highlighted = escapeHtmlLite(raw);
+          } else if (lang && typeof hljs !== 'undefined' && hljs.getLanguage(lang)) {
             highlighted = hljs.highlight(raw, { language: lang }).value;
-          } else {
+          } else if (typeof hljs !== 'undefined' && !streaming) {
             const auto = hljs.highlightAuto(raw);
             highlighted = auto.value;
             lang = lang || auto.language || 'code';
+          } else if (typeof hljs !== 'undefined' && lang) {
+            highlighted = hljs.highlight(raw, { language: lang }).value;
+          } else if (typeof hljs !== 'undefined') {
+            highlighted = hljs.highlightAuto(raw).value;
+          } else {
+            highlighted = escapeHtmlLite(raw);
           }
         } catch (e) {
-          highlighted = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          highlighted = escapeHtmlLite(raw);
         }
-        const safeLang = String(lang || 'code').replace(/[^a-zA-Z0-9_+#.-]/g, '');
-        const renderBtn = (safeLang === 'html' || safeLang === 'mermaid') ? `<button class="copy-btn" type="button" data-action="preview" data-id="${id}" data-lang="${safeLang}">Preview</button>` : '';
+        const safeLang = String(lang || 'code').replace(/[^a-zA-Z0-9_+#.-]/g, '') || 'code';
+        const renderBtn = (safeLang === 'html' || safeLang === 'mermaid')
+          ? `<button class="copy-btn" type="button" data-action="preview" data-id="${id}" data-lang="${safeLang}">Preview</button>` : '';
         const extMap = {javascript:'js',typescript:'ts',python:'py',html:'html',css:'css',json:'json',markdown:'md',md:'md',bash:'sh',shell:'sh',sql:'sql',xml:'xml',yaml:'yml',yml:'yml',java:'java',c:'c',cpp:'cpp',rust:'rs',go:'go',ruby:'rb',php:'php',swift:'swift',kotlin:'kt',text:'txt'};
         const ext = extMap[(safeLang||'').toLowerCase()] || (safeLang || 'txt');
-        return `<div class="code-block-wrap"><div class="code-header"><span class="code-lang">${safeLang || 'code'}</span><div class="code-header-actions">${renderBtn}<button class="copy-btn" type="button" data-action="copy" data-id="${id}">Copy</button><button class="copy-btn" type="button" data-action="download" data-id="${id}" data-ext="${ext}">Download</button></div></div><pre id="${id}"><code class="hljs language-${safeLang || 'plaintext'}">${highlighted}</code></pre></div>`;
+        const streamingClass = streaming ? ' is-streaming-code' : '';
+        return `<div class="code-block-wrap${streamingClass}"><div class="code-header"><span class="code-lang">${safeLang}</span><div class="code-header-actions">${renderBtn}<button class="copy-btn" type="button" data-action="copy" data-id="${id}">Copy</button><button class="copy-btn" type="button" data-action="download" data-id="${id}" data-ext="${ext}">Download</button></div></div><pre id="${id}"><code class="hljs language-${safeLang}">${highlighted}</code></pre></div>`;
       });
 
       const div = document.createElement('div');
       div.innerHTML = sanitizeHtml(marked.parse(processed));
 
-      // Wrap tables for responsive horizontal scrolling
       div.querySelectorAll('table').forEach(tbl => {
         if (!tbl.parentElement || !tbl.parentElement.classList.contains('table-wrap')) {
           const wrap = document.createElement('div');
@@ -6110,12 +6140,18 @@ body.dark-mode .model-select-btn {
         let buf = '';
         let streamDone = false;
         let lastRenderAt = 0;
-        const RENDER_MIN_MS = 80; // throttle full markdown re-parse while streaming
+        const RENDER_MIN_MS = 100; // throttle live markdown (code blocks) while streaming
 
         function paintStream() {
-          // Stick to bottom only if user hasn't scrolled away; never fight them.
+          // Live markdown (incl. open code fences) so code appears in blocks
+          // while the model is still writing — same feel as DeepSeek / ChatGPT.
           const stick = !userScrolledUp;
-          bubble.textContent = fullText;
+          try {
+            bubble.innerHTML = renderMarkdown(fullText, { streaming: true });
+          } catch (err) {
+            // Fallback to plain text if markdown blows up mid-stream
+            bubble.textContent = fullText;
+          }
           bubble.appendChild(cursor);
           if (stick) scrollBottom(true);
         }
