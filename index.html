@@ -1346,61 +1346,80 @@
        in both candy light mode and dark mode (fixes washed-out light-mode code). */
     .code-block-wrap {
       background: #1e1a2e;
-      border: 2px solid rgba(255,255,255,0.08);
-      border-radius: var(--blob-sm);
-      overflow: hidden;
-      margin: 0.6em 0;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      /* sticky header needs visible overflow on the wrap */
+      overflow: visible;
+      margin: 0.55em 0;
       max-width: 100%;
-      box-shadow: var(--shadow-soft);
+      box-shadow: none;
+      position: relative;
     }
 
     .code-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 12px;
-      background: rgba(255,255,255,0.04);
+      padding: 0 8px 0 12px;
+      height: 36px;
+      box-sizing: border-box;
+      /* Same surface as the block — no color “gap” */
+      background: #1e1a2e;
       border-bottom: 1px solid rgba(255,255,255,0.08);
-      gap: 8px;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      border-radius: 11px 11px 0 0;
+      box-shadow: none;
+      margin: 0;
+      width: 100%;
     }
 
     .code-lang {
-      font-size: 0.7rem;
-      color: #a89bb8;
+      font-size: 0.68rem;
+      color: #9ca3af;
       font-family: var(--mono);
       text-transform: uppercase;
-      letter-spacing: .5px;
+      letter-spacing: 0.6px;
+      flex-shrink: 0;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .code-header-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
+      gap: 4px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0;
+      pointer-events: auto;
+      position: relative;
+      z-index: 2;
     }
 
     .copy-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1.5px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
       color: #c4b5fd;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 5px;
+      padding: 3px 8px;
+      border-radius: 6px;
       font-family: var(--mono);
       font-weight: 600;
       transition: color .15s, background .15s, border-color .15s;
-      min-height: 28px;
+      min-height: 26px;
+      line-height: 1.2;
       position: relative;
       z-index: 2;
       pointer-events: auto;
       -webkit-user-select: none;
       user-select: none;
-    }
-    .code-header-actions {
-      pointer-events: auto;
-      position: relative;
-      z-index: 2;
+      white-space: nowrap;
+      margin: 0;
     }
 
     .copy-btn:hover {
@@ -1415,7 +1434,7 @@
     }
 
     .code-block-wrap pre {
-      padding: 12px 14px;
+      padding: 10px 14px 12px;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       font-family: var(--mono);
@@ -1424,6 +1443,8 @@
       color: #e5e7eb;
       background: transparent;
       margin: 0;
+      border-radius: 0 0 11px 11px;
+      border-top: none;
     }
 
     /* Let highlight.js token colors show (do NOT force color: inherit) */
@@ -3473,9 +3494,14 @@ body.dark-mode .ai .msg-bubble {
   border-color: var(--border);
   color: var(--text);
 }
+body.dark-mode .code-header {
+  background: #16121f;
+  border-bottom-color: rgba(255,255,255,0.08);
+}
 body.dark-mode .code-block-wrap {
   background: #16121f;
   border-color: rgba(255,255,255,0.1);
+  overflow: visible;
 }
 body.dark-mode .input-wrapper {
   background: var(--surface2) !important;
