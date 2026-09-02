@@ -3446,6 +3446,62 @@ body.custom-cursor-active input *, body.custom-cursor-active textarea * { cursor
   padding: 16px; background: rgba(10, 8, 18, 0.55);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
+
+/* Study Mode transition overlay — fully opaque so the background is hidden
+   during the switch, matching the "not showing the background" requirement.
+   Uses the study palette itself so the transition already feels calm. */
+#study-transition-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 18px;
+  background: linear-gradient(160deg, #10233a 0%, #0b1826 100%);
+  opacity: 0; transition: opacity .35s ease;
+}
+#study-transition-overlay.visible { display: flex; opacity: 1; }
+#study-transition-overlay .study-transition-icon {
+  width: 56px; height: 56px; color: #5EC8D8;
+  animation: study-pulse 1.1s ease-in-out infinite;
+}
+#study-transition-overlay .study-transition-text {
+  font-family: var(--sans);
+  font-size: 1rem; font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #E7F3F6;
+}
+#study-transition-overlay .study-transition-sub {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: #7FA8B5;
+}
+@keyframes study-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+/* Study Mode menu item — small badge state so it's clear it's a toggle */
+.menu-item[data-action="study"].active {
+  background: rgba(94, 200, 216, 0.14);
+  color: #5EC8D8;
+}
+.menu-item[data-action="study"] .study-on-badge {
+  margin-left: auto; font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.04em; color: #5EC8D8;
+  background: rgba(94, 200, 216, 0.16);
+  border: 1px solid rgba(94, 200, 216, 0.35);
+  border-radius: 20px; padding: 2px 7px;
+  display: none;
+}
+.menu-item[data-action="study"].active .study-on-badge { display: inline-block; }
+
+/* While Study Mode is active, the regular task-mode grid and Beast toggle
+   are locked out (Study Mode owns activeTaskMode exclusively) — grey them
+   out so it reads as "unavailable right now" rather than silently inert. */
+body.study-theme-active .mode-grid,
+body.study-theme-active #beastToggle {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(0.6);
+}
 #theme-picker-overlay.open { display: flex; }
 .theme-picker-card {
   width: min(100%, 380px);
@@ -3796,6 +3852,14 @@ body.dark-mode .model-select-btn {
 </head>
 
 <body class="dark-mode">
+  <div id="study-transition-overlay" aria-hidden="true">
+    <svg class="study-transition-icon" viewBox="0 0 24 24" fill="none">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v18H6.5A2.5 2.5 0 0 1 4 18.5v-13Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v18h5.5a2.5 2.5 0 0 0 2.5-2.5v-13Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+    <div class="study-transition-text" id="studyTransitionText">Switching to Study Mode…</div>
+    <div class="study-transition-sub" id="studyTransitionSub">Distraction-free · Study topics only</div>
+  </div>
 
   <!-- SIDEBAR -->
   <nav id="sidebar">
@@ -3980,6 +4044,11 @@ body.dark-mode .model-select-btn {
         <button type="button" class="menu-item" data-action="sysprompt">
           <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
           <span>System Prompt</span>
+        </button>
+        <button type="button" class="menu-item" data-action="study" id="studyModeMenuItem" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v18H6.5A2.5 2.5 0 0 1 4 18.5v-13Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v18h5.5a2.5 2.5 0 0 0 2.5-2.5v-13Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span>Study Mode</span>
+          <span class="study-on-badge">ON</span>
         </button>
         <button type="button" class="menu-item" data-action="export">
           <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -4345,6 +4414,42 @@ BEAST MODE — MAXIMUM EFFORT PROTOCOL:
 - If the request is ambiguous, make the smartest reasonable assumption and state it in one line — never produce a hedged, wishy-washy answer that tries to cover every interpretation at once.`;
 
     const TASK_MODES = {
+      study: {
+        label: 'Study Mode', tier: 'step',
+        prompt: `You are now in STUDY MODE — a focused study assistant. This mode has one purpose: helping the user learn, understand, and retain academic material. Follow these rules without exception for the rest of this session:
+
+SCOPE — what you help with:
+- Explaining concepts, theories, formulas, and processes across any academic subject (science, math, history, languages, etc.)
+- Creating study notes, summaries, flashcards, mnemonics, and revision material
+- Practice questions, quizzes, and mock tests, with explanations for each answer
+- Breaking down textbook or homework problems step by step
+- Exam strategy, study schedules, and revision planning
+- Explaining a diagram, chart, or passage from uploaded study material
+- Clarifying doubts about anything genuinely academic or exam-related
+
+REFUSAL RULE — what you decline:
+- If a request is not related to studying, learning, or academic work, politely decline and redirect: say briefly that you're in Study Mode and can only help with study-related topics right now, then ask what they'd like to study. Do not lecture, moralize, or over-explain the refusal — one short sentence, then redirect.
+- This applies to casual chit-chat, entertainment requests, unrelated coding/business/creative tasks, and anything else outside academic help. If genuinely unsure whether something counts as study-related (e.g. "explain how an engine works" could be a mechanics student's homework), lean toward helping rather than refusing — the bar is "plausibly educational," not "certainly homework."
+- Do not break this rule even if the user insists, jokes, rephrases, or claims a special exception. Study Mode stays in effect until the user exits it from the app menu.
+
+TEACHING STYLE:
+- Prioritize genuine understanding over just giving the answer. For any non-trivial question, briefly explain the reasoning or the "why," not just the "what."
+- Match explanation depth to what the user seems to already know — don't over-simplify for an advanced student, don't skip basics for a beginner. If unclear, ask their level in one line, or default to a clear mid-level explanation.
+- Use concrete examples, worked steps, and analogies where they genuinely aid understanding.
+- For factual/formula-based answers, be precise and correct — accuracy matters more than length. If uncertain about a fact, say so rather than guessing confidently.
+- Keep answers organized and scannable (steps, short sections) so they're usable as actual study material, not just a wall of text.
+
+EXAMPLE (refusal, done right):
+User: "write me a joke about my coworker"
+Response: "I'm in Study Mode right now, so I can only help with study-related stuff. What are you working on — I'm happy to help with that instead!"
+Notice: one short sentence declining, immediately followed by a redirect back to the mode's purpose — no lecture, no multiple paragraphs explaining the refusal.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Is this request actually study/academic-related? If not, did I decline briefly and redirect, instead of helping anyway or over-explaining the refusal?
+2. If I answered, did I explain the reasoning/"why," not just hand over a bare answer?
+3. Is the answer factually accurate, and did I flag any genuine uncertainty instead of guessing confidently?
+4. Is the response organized well enough that the user could actually study from it?`
+      },
       beast: {
         label: 'Beast Mode', tier: 'step',
         prompt: `You are operating at maximum capability — the best possible version of yourself, producing work that would impress a genuine expert in whatever domain this request touches. There is no task-specific mode active, so infer the domain from the request itself and apply that domain's real professional standards.
@@ -4706,6 +4811,7 @@ SELF-CHECK before finalizing — verify silently, fix anything that fails, don't
     // works standalone with no mode selected) by appending BEAST_MODE_BLOCK
     // to the system prompt and forcing the strongest model tier for the turn.
     function toggleBeastMode() {
+      if (studyModeOn) { toast('Exit Study Mode first to use Beast Mode'); return; }
       beastModeOn = !beastModeOn;
       const btn = document.getElementById('beastToggle');
       if (btn) btn.classList.toggle('active', beastModeOn);
@@ -4752,6 +4858,118 @@ SELF-CHECK before finalizing — verify silently, fix anything that fails, don't
       if (badge && shown) badge.textContent = shown;
       const menuModel = document.getElementById('menuModelName');
       if (menuModel && shown) menuModel.textContent = shown;
+    }
+
+    // ── STUDY MODE ──
+    // A calm, distraction-free, study-only mode. Reuses the existing task
+    // mode + Beast Mode machinery (TASK_MODES.study, activeTaskMode,
+    // pickModelForTurn) rather than a parallel system, so it's mutually
+    // exclusive with other task modes by construction — activeTaskMode can
+    // only hold one value at a time. Beast Mode is force-disabled on entry
+    // since Study Mode already forces the strongest tier itself.
+    let studyModeOn = false;
+    // Snapshot of whatever was active before entering, so exiting restores
+    // it exactly instead of just resetting to "nothing selected."
+    let preStudyState = null;
+    const STUDY_THEME_VARS = {
+      '--primary': '#2E6F8E', '--primary2': '#5EC8D8', '--accent': '#7FB88F',
+      '--glow': 'rgba(46, 111, 142, 0.30)', '--acglow': 'rgba(127, 184, 143, 0.22)',
+      '--user-bg': 'linear-gradient(135deg, #2E6F8E 0%, #1F4E68 100%)',
+      '--surface': '#111C26', '--surface2': '#16232F', '--surface3': '#1C2C3A',
+      '--bg': '#0B1420', '--text': '#E7F0F4', '--muted2': '#8FA6B3',
+      '--border': 'rgba(94, 200, 216, 0.16)', '--border2': 'rgba(94, 200, 216, 0.26)'
+    };
+
+    async function toggleStudyMode() {
+      studyModeOn = !studyModeOn;
+      const overlay = document.getElementById('study-transition-overlay');
+      const overlayText = document.getElementById('studyTransitionText');
+      const overlaySub = document.getElementById('studyTransitionSub');
+      const menuItem = document.getElementById('studyModeMenuItem');
+
+      if (studyModeOn) {
+        // Snapshot current mode/beast state so exit can restore it exactly.
+        preStudyState = { taskMode: activeTaskMode, beast: beastModeOn };
+        if (overlayText) overlayText.textContent = 'Switching to Study Mode…';
+        if (overlaySub) overlaySub.textContent = 'Distraction-free · Study topics only';
+      } else {
+        if (overlayText) overlayText.textContent = 'Exiting Study Mode…';
+        if (overlaySub) overlaySub.textContent = 'Restoring your previous setup';
+      }
+
+      if (menuItem) menuItem.classList.toggle('active', studyModeOn);
+      if (overlay) { overlay.classList.remove('visible'); void overlay.offsetWidth; overlay.classList.add('visible'); }
+      closeHeaderMenu?.();
+
+      // Hold the overlay for ~2s so the switch reads as a deliberate,
+      // calm transition rather than an instant jarring flip.
+      await new Promise(r => setTimeout(r, 2000));
+
+      if (studyModeOn) {
+        applyStudyTheme(true);
+        beastModeOn = false; // Study Mode's own tier ('step') already covers this; avoid double-forcing / conflicting state.
+        applyTaskMode('study');
+        try { localStorage.setItem('ai_study_mode', '1'); } catch (e) {}
+        // Auto-send a real, visible kickoff message so the session starts
+        // with the AI already primed and responding in study mode.
+        try {
+          if (apiKey && !isStreaming) {
+            await runTurn("I've switched to Study Mode — please help me study. Stay strictly on academic/study topics from here on.", false, []);
+          }
+        } catch (e) { console.warn('study kickoff message failed', e); }
+      } else {
+        applyStudyTheme(false);
+        const restore = preStudyState || { taskMode: null, beast: false };
+        beastModeOn = restore.beast;
+        applyTaskMode(restore.taskMode);
+        preStudyState = null;
+        try { localStorage.setItem('ai_study_mode', ''); } catch (e) {}
+        toast('Study Mode off — back to normal');
+      }
+
+      if (overlay) overlay.classList.remove('visible');
+    }
+
+    // Snapshot of the real theme CSS vars, captured right before Study
+    // Mode overwrites them, so exit restores the user's actual theme
+    // instead of silently resetting to a default. Deliberately NOT using
+    // applyThemePreset()/ai_theme_preset here — that would permanently
+    // overwrite the user's chosen theme instead of temporarily covering it.
+    let preStudyThemeSnapshot = null;
+
+    function applyStudyTheme(on) {
+      const root = document.documentElement;
+      if (on) {
+        preStudyThemeSnapshot = {};
+        Object.keys(STUDY_THEME_VARS).forEach(v => {
+          preStudyThemeSnapshot[v] = getComputedStyle(root).getPropertyValue(v).trim();
+        });
+        Object.entries(STUDY_THEME_VARS).forEach(([v, val]) => root.style.setProperty(v, val));
+        root.style.setProperty('--primary-soft', hexToRgba('#2E6F8E', 0.14));
+        root.style.setProperty('--primary-mid', hexToRgba('#2E6F8E', 0.24));
+        root.style.setProperty('--primary-border', hexToRgba('#2E6F8E', 0.35));
+        root.style.setProperty('--accent-soft', hexToRgba('#7FB88F', 0.18));
+        root.style.setProperty('--brand-grad', 'linear-gradient(135deg, #2E6F8E 0%, #5EC8D8 45%, #7FB88F 100%)');
+        document.body.classList.add('study-theme-active');
+      } else {
+        if (preStudyThemeSnapshot) {
+          Object.entries(preStudyThemeSnapshot).forEach(([v, val]) => {
+            if (val) root.style.setProperty(v, val); else root.style.removeProperty(v);
+          });
+          // Recompute the soft/mid/border derived vars from whatever the
+          // restored primary/accent actually are, same as applyThemePreset does.
+          const restoredPrimary = getComputedStyle(root).getPropertyValue('--primary').trim();
+          const restoredAccent = getComputedStyle(root).getPropertyValue('--accent').trim();
+          if (restoredPrimary) {
+            root.style.setProperty('--primary-soft', hexToRgba(restoredPrimary, 0.14));
+            root.style.setProperty('--primary-mid', hexToRgba(restoredPrimary, 0.24));
+            root.style.setProperty('--primary-border', hexToRgba(restoredPrimary, 0.35));
+          }
+          if (restoredAccent) root.style.setProperty('--accent-soft', hexToRgba(restoredAccent, 0.18));
+          preStudyThemeSnapshot = null;
+        }
+        document.body.classList.remove('study-theme-active');
+      }
     }
 
     // Called when a mode card or the compact dropdown is used.
@@ -4901,6 +5119,7 @@ SELF-CHECK before finalizing — verify silently, fix anything that fails, don't
           else if (action === 'music') { try { openMusicPicker(); } catch (err) { console.error(err); toast('Music picker error'); } }
           else if (action === 'cursors') { try { openCursorPicker(); } catch (err) { console.error(err); toast('Cursor picker error'); } }
           else if (action === 'dark') { try { toggleDarkMode(); } catch (err) { console.error(err); } }
+          else if (action === 'study') { try { toggleStudyMode(); } catch (err) { console.error(err); toast('Study Mode error'); } }
         }
       });
 
@@ -5385,6 +5604,25 @@ SELF-CHECK before finalizing — verify silently, fix anything that fails, don't
       // Migrate any unknown/legacy preset names (e.g. "violet") to candy pink
       if (!THEME_PRESETS[savedPreset]) savedPreset = 'pink';
       applyThemePreset(savedPreset);
+    })();
+
+    // Restore Study Mode on reload, AFTER the real theme has been applied
+    // above — applyStudyTheme() snapshots the current CSS vars to restore
+    // on exit, so it must run once the user's actual theme is in place,
+    // not before. Silent restore: no 2s transition overlay (that's only
+    // for a deliberate user-initiated switch) and no auto-sent kickoff
+    // message (that's a one-time entry action, not a per-reload one).
+    (function restoreStudyMode() {
+      try {
+        if (!localStorage.getItem('ai_study_mode')) return;
+        studyModeOn = true;
+        preStudyState = { taskMode: null, beast: false }; // reload has no prior in-session state to remember
+        applyStudyTheme(true);
+        beastModeOn = false;
+        applyTaskMode('study');
+        const menuItem = document.getElementById('studyModeMenuItem');
+        if (menuItem) menuItem.classList.add('active');
+      } catch (e) { console.warn('restoreStudyMode', e); }
     })();
 
     // ── VOICE INPUT ──
@@ -6425,8 +6663,16 @@ SELF-CHECK before finalizing — verify silently, fix anything that fails, don't
         if (!modelsUrl.includes('/models')) {
           modelsUrl = modelsUrl.replace(/\/$/, '') + '/models';
         }
-        const px = (document.getElementById('proxyinput')?.value || '').trim();
         const realModelsUrl = modelsUrl;
+        // Read the proxy straight from the live #proxyinput field, same as
+        // initChat() does — NOT the proxyUrl variable. proxyUrl is only
+        // assigned on page load (from saved config) and inside initChat()
+        // when the user clicks Connect; it does not track edits made to
+        // the field in between. Fetch is normally clicked before Connect,
+        // so relying on proxyUrl here silently ignored whatever the user
+        // had just typed. Falls back to proxyUrl only if the field is
+        // empty, so a saved/loaded profile still works before Connect.
+        const px = (document.getElementById('proxyinput')?.value || '').trim() || proxyUrl;
         const fetchHeaders = { 'Authorization': 'Bearer ' + k, 'Content-Type': 'application/json' };
         if (px) {
           modelsUrl = px;
