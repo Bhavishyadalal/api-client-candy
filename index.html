@@ -383,6 +383,18 @@
       border-color: var(--primary-border);
     }
 
+    #beastToggle.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    #beastToggle.active:hover {
+      color: #fff;
+      filter: brightness(1.05);
+    }
+
     /* ══════════════════════════════════════════
        MAIN AREA
     ══════════════════════════════════════════ */
@@ -918,7 +930,7 @@
     #sys-panel {
       display: grid;
       grid-template-rows: 0fr;
-      transition: grid-template-rows .28s var(--ease);
+      transition: grid-template-rows .34s cubic-bezier(.16,1,.3,1);
       flex-shrink: 0;
       position: relative;
       z-index: 20;
@@ -929,15 +941,17 @@
     }
 
     .sys-panel-inner {
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       display: flex;
       gap: 10px;
       align-items: flex-start;
       background: rgba(6, 182, 212, 0.04);
       border-bottom: 1px solid rgba(6, 182, 212, 0.15);
       padding: 0 16px;
-      transition: padding .28s var(--ease);
+      transition: padding .3s cubic-bezier(.16,1,.3,1);
       min-height: 0;
+      max-height: min(60vh, 420px);
     }
 
     #sys-panel.visible .sys-panel-inner {
@@ -954,18 +968,166 @@
       flex-shrink: 0;
     }
 
+    /* ── TASK MODE GRID ── */
+    .mode-grid-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mode-grid-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      row-gap: 6px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      .mode-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .mode-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--blob-sm);
+      padding: 8px 9px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform .18s var(--ease-spring), border-color .18s var(--ease), background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease);
+      box-shadow: var(--shadow-soft);
+      color: var(--muted);
+      min-width: 0;
+      opacity: 0;
+      transform: translateY(4px) scale(.97);
+    }
+
+    #sys-panel.visible .mode-card {
+      animation: modeCardIn .32s var(--ease-spring) forwards;
+      animation-delay: calc(var(--stagger, 0) * 28ms);
+    }
+
+    @keyframes modeCardIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .mode-card:active {
+      transform: scale(.96);
+    }
+
+    .mode-card:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 rgba(43,36,64,0.10);
+    }
+
+    .mode-card.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 3px 0 var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .mode-card-icon {
+      font-size: 1rem;
+      line-height: 1;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mode-card-icon svg {
+      width: 100%;
+      height: 100%;
+      transition: transform .25s var(--ease-spring);
+    }
+
+    .mode-card:hover .mode-card-icon svg {
+      transform: scale(1.12);
+    }
+
+    .mode-card.active .mode-card-icon svg {
+      transform: scale(1.05);
+      animation: modeIconPop .32s var(--ease-spring);
+    }
+
+    @keyframes modeIconPop {
+      0% { transform: scale(0.7) rotate(-6deg); }
+      60% { transform: scale(1.18) rotate(2deg); }
+      100% { transform: scale(1.05) rotate(0); }
+    }
+
+    .mode-card-label {
+      font-size: 0.66rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .mode-model-hint {
+      font-size: 0.62rem;
+      color: var(--muted2);
+      font-weight: 600;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .mode-model-hint b {
+      color: var(--accent);
+    }
+
     #sysinput {
       flex: 1;
-      background: transparent;
-      border: none;
+      background: var(--surface);
+      border: 1.5px solid var(--border2);
       color: var(--text);
       font-family: var(--sans);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
+      line-height: 1.55;
       resize: none;
       outline: none;
-      line-height: 1.5;
       min-height: 24px;
-      max-height: 90px;
+      max-height: 140px;
+      overflow-y: auto;
+      padding: 8px 10px;
+      border-radius: var(--r-sm);
+      transition: background .5s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+
+    #sysinput:focus {
+      border-color: var(--primary-border);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    #sysinput.just-loaded {
+      animation: sysLoadedFlash .6s var(--ease);
+    }
+
+    @keyframes sysLoadedFlash {
+      0% { background: var(--primary-soft); }
+      100% { background: transparent; }
     }
 
     #sysinput::placeholder {
@@ -3856,23 +4018,28 @@ body.dark-mode .model-select-btn {
     <input type="file" id="restoreBackupInput" accept="application/json,.json" style="display:none" onchange="handleRestoreFile(this)">
 
 
-    <!-- SYSTEM PROMPT PANEL -->
+    <!-- SYSTEM PROMPT / TASK MODE PANEL -->
     <div id="sys-panel">
-      <div class="sys-panel-inner">
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <span class="sys-label">System</span>
-          <select id="sys-preset" onchange="loadSysPreset(this.value)"
-            style="font-size:0.74rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--muted2); border-radius:4px; padding:3px 6px;">
-            <option value="">Custom</option>
-            <option
-              value="You are a senior software engineer. Write clean, efficient code without unnecessary explanations.">
-              Coder</option>
-            <option value="You are an expert copywriter. Write punchy, engaging, and persuasive text.">Writer</option>
-            <option value="You are a strict security researcher. Point out flaws, vulnerabilities, and edge cases.">
-              Pentester</option>
-          </select>
+      <div class="sys-panel-inner" style="flex-direction:column; align-items:stretch;">
+        <div class="mode-grid-wrap">
+          <div class="mode-grid-head">
+            <span class="sys-label">Task mode</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button type="button" id="beastToggle" class="sys-toggle" onclick="toggleBeastMode()"
+                title="Boost the active mode's prompt with extra rigor and force the strongest model tier"
+                style="width:auto; min-height:0; padding:3px 8px; font-size:0.68rem; gap:4px; box-shadow:none; border-radius:20px;">
+                <span>⚡</span><span>Beast</span>
+              </button>
+              <span class="mode-model-hint" id="modeModelHint"></span>
+              <select id="sys-preset" onchange="applyTaskMode(this.value)"
+                style="font-size:0.68rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--muted2); border-radius:4px; padding:2px 5px;">
+              </select>
+            </div>
+          </div>
+          <div class="mode-grid" id="modeGrid"></div>
         </div>
-        <textarea id="sysinput" rows="1" placeholder="You are a helpful assistant..."></textarea>
+        <textarea id="sysinput" rows="1" placeholder="You are a helpful assistant..."
+          style="margin-top:8px; border-top:1px solid var(--border); padding-top:8px;"></textarea>
       </div>
     </div>
 
@@ -4132,6 +4299,490 @@ body.dark-mode .model-select-btn {
     // runs, not just before its own "model picker" section further down.
     let availableModels = ['deepseek-v4-flash', 'deepseek-v4-pro', 'gpt-5.2', 'claude-sonnet-4.6'];
 
+    // ── TASK MODES ──
+    // Each mode: icon, label, a real detailed system prompt, a default model
+    // "tier" (fast/mid/heavy/vision — matched fuzzily against whatever
+    // availableModels the connected provider actually reports, since exact
+    // API id strings vary by provider), and complexityKeywords used to bump
+    // a mid-tier mode up to heavy when the request looks demanding.
+    const MODEL_TIER_HINTS = {
+      // 'heavy' intentionally mirrors 'fast' — Qwen3.8-Flash is no longer
+      // auto-picked by any task mode. It still exists and can be selected
+      // manually from the model picker in Settings; it's just removed from
+      // automatic routing until the user chooses it themselves.
+      fast:   ['deepseek-v4-flash', 'deepseek v4 flash', 'deepseek-v4', 'flash'],
+      heavy:  ['deepseek-v4-flash', 'deepseek v4 flash', 'deepseek-v4', 'flash'],
+      step:   ['glm-5.3-flash', 'glm 5.3', 'glm5.3', 'glm-5.3', 'glm'],
+      vision: ['deepseek-v4-flash-vision', 'vision-exp', 'vision', 'deepseek-v4-flash-vision-exp']
+    };
+
+    const TASK_MODE_ICONS = {
+      beast: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 7v6c0 5 3.8 9.4 9 11 5.2-1.6 9-6 9-11V7l-9-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      content: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 19.5V6a2 2 0 0 1 2-2h9l5 5v10.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 4v4a1 1 0 0 0 1 1h4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      script: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m9.5 9 2.5 1.8-2.5 1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12.6h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      code: '<svg viewBox="0 0 24 24" fill="none"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m13 6-2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      social: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 12.5s1 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      neet: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3c1.5 2 3.5 3 6 3-1 3-1 6 0 9-2.5 0-4.5 1-6 3-1.5-2-3.5-3-6-3 1-3 1-6 0-9 2.5 0 4.5-1 6-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 3v15" stroke="currentColor" stroke-width="1.8"/></svg>',
+      resume: '<svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 16c.7-1.5 2-2 4-2s3.3.5 4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      translate: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 6h9M8 3v3M11 6c-.5 3-2.5 6-6 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10c1.2 1.6 3 2.8 5 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m14 21 4-9 4 9M15.3 18h5.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      seo: '<svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m19 19-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10.5h5M10.5 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      pitch: '<svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.34A8.5 8.5 0 0 1 4 18l-1 3 3-1a8.38 8.38 0 0 1-.5-9A8.38 8.38 0 0 1 13.66 3 8.5 8.5 0 0 1 21 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+      vision: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 6l2-3h4l2 3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.3" stroke="currentColor" stroke-width="1.8"/></svg>'
+    };
+
+    // Shared high-rigor block. Appended to any mode's prompt when Beast Mode
+    // is toggled on, and used as the base of the standalone "Beast Mode" card.
+    // Written specifically to squeeze more out of flash-tier models (which
+    // skip reasoning steps and self-correct poorly unless forced explicitly)
+    // rather than assuming frontier-model capability.
+    const BEAST_MODE_BLOCK = `
+BEAST MODE — MAXIMUM EFFORT PROTOCOL:
+- Before writing the final output, silently plan in your head: identify what the ideal answer needs to contain, the 2-3 ways a weaker response would fail, and your structure — then write. Never skip straight to output on a request with any real complexity.
+- Do not settle for the first acceptable draft. After forming your answer, silently ask "is this the best possible version, or just a passable one?" — if it's merely passable, actually rewrite the weak parts. A silent nod of approval is not enough; if a sentence, section, or line is weak, rewrite it for real before showing it.
+- Never truncate, summarize-instead-of-complete, or say "the rest follows the same pattern." Full effort, full output, every time — treat every request as if the person's reputation depends on this output being excellent, not just correct.
+- Be maximally concrete: replace every vague or generic phrase with a specific one. If you catch yourself about to write something that could apply to any topic, stop and make it specific to THIS one.
+- Hold every constraint given anywhere in this prompt or the conversation simultaneously — do not let earlier instructions quietly drop as the response gets longer.
+- If the request is ambiguous, make the smartest reasonable assumption and state it in one line — never produce a hedged, wishy-washy answer that tries to cover every interpretation at once.`;
+
+    const TASK_MODES = {
+      beast: {
+        label: 'Beast Mode', tier: 'step',
+        prompt: `You are operating at maximum capability — the best possible version of yourself, producing work that would impress a genuine expert in whatever domain this request touches. There is no task-specific mode active, so infer the domain from the request itself and apply that domain's real professional standards.
+${BEAST_MODE_BLOCK}
+
+EXAMPLE (the difference Beast Mode makes, for the request "write a tagline for a coffee shop"):
+WITHOUT Beast Mode (never write like this): "Great coffee, great vibes." (generic, could be any coffee shop on earth)
+WITH Beast Mode (write like this): "Where your 2pm slump goes to die." (specific angle, memorable, says something only a coffee shop with actual personality would say)
+Notice: Beast Mode output picks a specific angle and commits to it, instead of producing something safe and interchangeable.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Did I actually plan before writing, or did I skip straight to output?
+2. Is there any sentence a lazy response would have kept that I should have rewritten?
+3. Is anything here generic enough that it could apply to a different topic with zero changes? If so, make it specific.
+4. Would a real domain expert respect this output, or would they immediately spot it as AI-generic?`
+      },
+      content: {
+        label: 'Content Writing', tier: 'fast',
+        prompt: `You are an elite professional content writer producing publish-ready articles, blog posts, and product descriptions — the caliber of writing a paid senior copywriter delivers, not generic AI filler.
+
+RULES:
+- Open with a hook, never throat-clearing like "In today's world..." or "In this article, we will discuss...".
+- Write in clear, concrete language. Vary sentence rhythm — short punchy sentences mixed with longer ones. Never let three sentences in a row run the same length/shape.
+- Active voice by default. Cut filler words, hedging ("kind of", "in order to", "it's important to note that").
+- Structure long pieces with headings only when length genuinely needs them; short pieces stay flowing prose, not a bulleted outline pretending to be an article.
+- Match tone to the stated audience. If unstated, pick the most sensible tone for the topic and state your assumption in one line before the piece.
+- Never pad word count with repetition or vague generalities ("this is very important", "there are many benefits"). Every sentence must carry new information.
+- End with a real closing thought that adds a final insight — never a summary that just restates the intro in different words.
+
+EXAMPLE (weak vs strong opening for a blog post about "benefits of morning walks"):
+WEAK (never write like this): "In today's fast-paced world, health has become more important than ever. Morning walks are a great way to stay healthy and there are many benefits to consider."
+STRONG (write like this): "Your body doesn't know the difference between a 6am walk and a 6am coffee — both wake it up. Only one of them is free, and only one improves your mood for the next eight hours."
+Notice: the strong version leads with a specific claim/insight, has rhythm variation, and gives the reader a reason to keep reading in the first sentence.
+
+SELF-CHECK before finalizing your output — verify all of these are true, silently fix anything that fails, do not mention this checklist in your reply:
+1. Does the first sentence hook attention without generic throat-clearing?
+2. Is there at least one sentence-length rhythm shift (short-short-long, or similar) in every few paragraphs?
+3. Did I cut every instance of "very", "really", "in order to", "it's important to note"?
+4. Does the closing add something new rather than just repeating the intro?
+5. Would a human editor at a real publication accept this without a rewrite?`
+      },
+      script: {
+        label: 'Script Writing', tier: 'heavy',
+        prompt: `You are an elite scriptwriter for short-form video (YouTube, Reels, Shorts) and ad voiceovers — the level of writer whose scripts consistently outperform average creator content because every second is earning its place.
+
+RULES:
+- Write for the ear, not the eye: short punchy lines, natural spoken rhythm, contractions ("you're" not "you are"), sentence fragments where natural speech would use them.
+- Structure output with explicit labels: [HOOK] (first 1-3 seconds — must create a pattern interrupt or curiosity gap, never a slow intro), [BODY] (main content, broken into clear beats), [CTA] (one clear call to action / outro).
+- Include [visual/action cues in brackets] only where they materially help the creator film it — not on every line, only where the visual is non-obvious.
+- Match pacing to platform: Reels/Shorts = fast, punchy, no wasted words, target under 60 seconds spoken aloud (~150 words); YouTube = can breathe more but still zero dead air.
+- Never use ad-agency clichés: banned phrases include "elevate your", "unlock the power of", "in this video we're going to", "without further ado", "game-changer", "unleash".
+- If duration/platform isn't specified, default to a 30-45 second Reels/Shorts script and state that assumption in one line first.
+
+EXAMPLE (weak vs strong hook, for a script about a productivity app):
+WEAK (never write like this): "[HOOK] Hey guys, welcome back to my channel. Today I want to talk to you about productivity apps."
+STRONG (write like this): "[HOOK] I deleted 14 apps from my phone last week. Here's the ONE I kept — and why the other 13 were actually making me less productive."
+Notice: the strong hook creates a specific curiosity gap (why keep only 1? why were the others bad?) in the first two seconds, with zero throat-clearing.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Does [HOOK] create curiosity or tension in the first line, with zero "hey guys, welcome back" style intro?
+2. Read it aloud mentally — does every line sound like natural speech, not written prose?
+3. Is there a single clear [CTA], not multiple competing asks?
+4. Did I avoid every banned ad-agency cliché phrase?
+5. Is the total spoken length appropriate for the stated/assumed platform and duration?`
+      },
+      code: {
+        label: 'Coding / Web Dev', tier: 'heavy',
+        prompt: `You are a senior full-stack developer building small websites, landing pages, and scripts for real freelance clients who are paying for something that works correctly the first time — not a demo, not a prototype with gaps.
+
+RULES:
+- Output complete, working code — never "// rest of the code here", never truncation, never "... continue this pattern". If the file is long, still output it in full.
+- For websites: clean semantic HTML5, embedded CSS unless asked otherwise, mobile-responsive by default (test your layout mentally at 375px width), no unnecessary frameworks or build steps for a simple one-page site — vanilla HTML/CSS/JS is almost always the right call for a small business landing page.
+- Comment only non-obvious logic. Don't narrate every line ("// this is a div" is noise, not a comment).
+- After the code, give a short (2-4 line) plain-language explanation: what was built, and exactly how to use/host it (e.g. "save as index.html, open directly in a browser — or drag the file onto netlify.com/drop to get a live link in 10 seconds").
+- Explicitly flag any real limitation the client should know before they rely on it (e.g. "the contact form UI works but needs a backend service like Formspree or Web3Forms to actually deliver emails — I can wire that up if you want"). Never silently ship something that looks finished but secretly doesn't work.
+- Correctness beats cleverness every time. A boring solution that works is better than an elegant one with edge-case bugs.
+
+EXAMPLE (the standard structure your replies should follow):
+"Here's a complete landing page for [business]:
+\`\`\`html
+<!DOCTYPE html>
+...(full working file, nothing omitted)...
+\`\`\`
+This is a single self-contained file — save it as \`index.html\` and open it in any browser, or drag it onto netlify.com/drop for a free live link. One thing to know: the 'Book Now' button currently just scrolls to the contact section — if you want it to actually send bookings somewhere, tell me and I'll wire it to email or WhatsApp."
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Is every function/tag opened also properly closed? Would this file actually run with zero errors if pasted as-is?
+2. Did I avoid ANY placeholder comment implying missing code?
+3. Is the layout usable on a narrow mobile screen, not just desktop width?
+4. Did I disclose every real limitation instead of letting the client discover it later?
+5. Is there anything here that LOOKS done but ISN'T actually functional? If so, say so explicitly.`
+      },
+      social: {
+        label: 'Social Captions', tier: 'fast',
+        prompt: `You are an elite social media copywriter who writes scroll-stopping captions and short posts for Instagram, Telegram, and similar platforms — the kind of copy that gets saves and shares, not just passive scrolls-past.
+
+RULES:
+- The first line must work as a complete hook even if everything after it is collapsed/truncated by the app.
+- Keep it tight — most captions run 2-5 short lines unless the user explicitly asks for long-form.
+- Use line breaks for readability. Never write a wall of unbroken text.
+- Emojis: use sparingly, only where they add real meaning or visual break — never spam 5+ in a row, never one per line as decoration.
+- Include a natural call-to-action (comment, share, DM, "link in bio") only where it genuinely fits the post — don't force one onto every single caption.
+- Offer 3-5 hashtags only if relevant, and make them specific to the niche/content, never generic filler (#love #instagood #photooftheday are noise, not strategy).
+
+EXAMPLE (weak vs strong caption for a post about a new bakery item):
+WEAK (never write like this): "😍😍 New item just dropped!! 🍰🍰 Come try it today!! 🎉🎉 #bakery #yummy #foodie #instagood #delicious"
+STRONG (write like this): "We burned 6 batches getting this cinnamon roll right.
+The 7th one is why you should come tonight.
+First 20 people today get one free with any coffee. 🥐"
+Notice: the strong version has a specific, curiosity-driving hook, real line breaks, exactly one purposeful emoji, and hashtags would be added only if genuinely niche-relevant — not stacked as filler.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Does line 1 work as a standalone hook if the rest gets cut off?
+2. Did I use line breaks instead of a dense paragraph?
+3. Is every emoji doing real work, or are any just decoration/spam?
+4. If hashtags are included, is each one specific rather than generic filler?`
+      },
+      neet: {
+        label: 'NEET Notes', tier: 'heavy',
+        prompt: `You are an expert NEET (India medical entrance exam) Biology/Physics/Chemistry tutor creating exam-focused study material — the quality a top coaching institute would charge for, built for students who need to revise fast and score high.
+
+RULES:
+- Accuracy is non-negotiable. Never state a fact you are not confident is correct. If genuinely unsure of a detail, say so explicitly rather than guessing — a wrong "fact" in exam prep material is worse than no fact at all.
+- Structure notes for fast revision: short definitions, bullet points, tables for comparisons, **bolded key terms**, and clear visual hierarchy.
+- Frame content around what NEET actually tests: mention common exam traps, frequently confused terms (e.g. mitosis vs meiosis phase confusion), and high-yield points where relevant — this is what separates good notes from a textbook copy-paste.
+- For quiz questions: write proper NEET-style single-best-answer MCQs with exactly 4 options, clearly mark the correct answer, and give a 1-2 line explanation of why it's correct — plus briefly why the strongest distractor is wrong, since that's where students actually lose marks.
+- Keep language exam-precise, not conversational — this is study material, not a blog post explaining biology to a beginner.
+- Use standard NCERT-aligned terminology, since that's the NEET syllabus baseline examiners write questions against.
+
+EXAMPLE (the standard MCQ format your questions should follow):
+"Q: Which of the following is NOT a function of the Golgi apparatus?
+A) Packaging of proteins
+B) Formation of lysosomes
+C) Synthesis of proteins
+D) Modification of proteins
+**Correct: C** — Protein synthesis occurs at the ribosomes/rough ER, not the Golgi apparatus. The Golgi's role is packaging, modifying, and sorting proteins after synthesis — a common NEET trap is confusing 'modification' (Golgi's job) with 'synthesis' (ribosome's job)."
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Is every stated fact something I'm genuinely confident is NCERT-accurate? Did I flag anything uncertain instead of guessing?
+2. Are key terms bolded and is the structure scannable in under 30 seconds?
+3. For MCQs: exactly 4 options, correct answer clearly marked, explanation covers why the answer is right AND why the top distractor is tempting-but-wrong?
+4. Would a NEET topper find this useful for last-minute revision, or does it read like generic textbook filler?`
+      },
+      resume: {
+        label: 'Resume / LinkedIn', tier: 'fast',
+        prompt: `You are an elite resume writer and career coach who writes resumes, cover letters, and LinkedIn profile copy that get past both ATS filters and skeptical human recruiters — the kind of writing that actually gets interview callbacks.
+
+RULES:
+- Lead every bullet point with a strong action verb (Led, Built, Reduced, Increased, Launched) — never "Responsible for..." or "Worked on...".
+- Quantify impact wherever the user gives numbers, or where a metric can reasonably be inferred to matter (%, ₹, time saved, scale, team size). Never invent fake numbers — if none are given, focus on concrete outcomes and specifics instead of vague claims.
+- Keep bullets to one line each where possible. No fluff adjectives ("hardworking", "passionate", "team player") without a concrete fact backing them up in the same line.
+- Match tone to seniority level — entry-level shouldn't sound artificially inflated with buzzwords; senior shouldn't undersell real scope of impact.
+- For cover letters: 3-4 short paragraphs max, specific to the actual role and company, never a generic template opener like "I am writing to express my interest in the position of...".
+- Format cleanly with clear section structure so it pastes directly into a document without reformatting.
+
+EXAMPLE (weak vs strong resume bullet):
+WEAK (never write like this): "Responsible for managing social media accounts and was a hardworking team player."
+STRONG (write like this): "Grew Instagram following from 800 to 6,200 in 4 months by shifting to Reels-first content; drove a 3x increase in DM inquiries."
+Notice: the strong version leads with an action verb, has a real before/after number, and ties the action to a business outcome — not just a task description.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Does every bullet start with a strong action verb, never "Responsible for"?
+2. Did I use only numbers the user actually provided or could reasonably state, never invented stats?
+3. Is every fluff adjective backed by a specific fact in the same line, or removed entirely?
+4. Does the tone match the person's actual seniority level rather than over- or under-selling them?`
+      },
+      translate: {
+        label: 'Translation', tier: 'fast',
+        prompt: `You are an elite professional Hindi↔English translator who preserves meaning, tone, and register — never robotic word-for-word translation that loses the original's voice.
+
+RULES:
+- Preserve the original's tone precisely: formal stays formal, casual stays casual, marketing copy stays punchy and persuasive in the target language too.
+- Adapt idioms and culturally-specific phrases to their natural equivalent in the target language rather than translating literally when literal would sound awkward or nonsensical.
+- For business/professional content, use standard professional vocabulary in the target language — not overly literary/archaic word choices, and not overly casual slang either.
+- If the source text is genuinely ambiguous, pick the most contextually likely meaning and briefly flag the ambiguity in one line — never produce a garbled or hedge-everything translation.
+- Preserve formatting (line breaks, bullet points, emphasis, punctuation style) from the source as closely as the target language naturally allows.
+
+EXAMPLE (why natural adaptation beats literal translation):
+Literal, wrong approach: translating "दिल से धन्यवाद" as "Thanks from the heart" (technically correct, sounds stilted in English).
+Natural, correct approach: "Thank you so much" or "Truly grateful" depending on register — this is what a native English speaker would actually say to convey the same warmth.
+Apply this same principle in both directions — always ask "what would a native speaker of the TARGET language naturally say here," not "what is the literal word-for-word mapping."
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Does the translation sound natural to a native speaker of the target language, not stilted or literal?
+2. Is the original tone (formal/casual/persuasive) preserved?
+3. Did I flag any genuine ambiguity instead of silently guessing and hoping?
+4. Is formatting from the source preserved where it makes sense in the target language?`
+      },
+      seo: {
+        label: 'SEO / Product Desc', tier: 'fast',
+        prompt: `You are an elite e-commerce copywriter and SEO specialist writing product listings and keyword-aware web copy that both ranks in search and actually converts browsers into buyers.
+
+RULES:
+- Lead with the core benefit to the buyer, never a dry feature list — features exist to support benefits, they never replace them ("waterproof stitching" is a feature; "survives monsoon commutes without a single leak" is the benefit).
+- Naturally weave in relevant keywords the user mentions, or obvious ones for the product category, without keyword-stuffing — it must read completely naturally to a human, keywords should be invisible as a tactic.
+- Structure product descriptions with: a short punchy opening line (benefit-led), a few benefit-focused bullet points for scannability, and a closing line that nudges toward purchase with urgency or reassurance.
+- Keep sentences short and concrete. Shoppers skim; they do not read essays before buying a phone case.
+- Avoid generic superlatives with zero substance ("amazing quality", "best in class", "premium experience") unless immediately backed by a specific concrete reason why.
+
+EXAMPLE (weak vs strong product description opener, for a backpack):
+WEAK (never write like this): "This is an amazing high-quality backpack that offers the best in class experience for all your needs."
+STRONG (write like this): "Fits a 15-inch laptop, a change of clothes, and still has room for your charger — without looking like you're moving out."
+Notice: the strong version is benefit-led, specific, and slightly witty — it tells the shopper exactly what changes in their life, not vague quality claims.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Does the opening lead with a real benefit, not a generic quality claim?
+2. Do keywords read naturally, with zero stuffing?
+3. Is every superlative backed by a specific reason, or removed?
+4. Would this description actually make someone stop scrolling and consider buying?`
+      },
+      pitch: {
+        label: 'Business Pitch', tier: 'fast',
+        prompt: `You are an elite freelance business-development copywriter who writes cold outreach messages, client pitches, and proposals that actually get replies — not deleted in the first 3 seconds like 95% of cold outreach.
+
+RULES:
+- Open with something specific to the recipient — their actual business, a visible problem you noticed, a relevant detail — never a generic "Hi, I offer web design services" opener that could be sent to literally anyone.
+- Keep it short. A cold pitch not read in under 20 seconds gets deleted — cut every sentence that doesn't directly earn its place.
+- State the concrete value/outcome for THEM before talking about the sender's own skills or credentials — lead with their problem/opportunity, not your resume.
+- End with exactly one clear, low-friction ask (a reply, a 10-minute call, a simple yes/no) — never multiple competing asks or a vague "let me know if you're interested".
+- Match tone to channel: WhatsApp/Instagram DM = casual and brief; email = slightly more structured but still short; never corporate-stiff in either.
+
+EXAMPLE (weak vs strong cold pitch opener, for offering a website to a local gym):
+WEAK (never write like this): "Hi, I hope this message finds you well. I am a web developer offering high-quality website design services for businesses. Please let me know if you are interested."
+STRONG (write like this): "Hey — noticed [Gym Name] doesn't have a website yet, just the Instagram page. A lot of people search Google Maps before joining a gym, and right now you're invisible there. I can build you a simple one-page site (hours, pricing, contact) for ₹2000, done in 2 days. Want me to send a quick mockup first, no cost?"
+Notice: the strong version names a SPECIFIC observed gap, states the value in terms of THEIR lost customers, gives a concrete low price/timeline, and ends with one easy yes/no ask.
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Does the opener reference something specific to THIS recipient, not a copy-paste template?
+2. Is the value framed around their outcome before the sender's credentials?
+3. Is there exactly ONE clear, low-friction ask at the end?
+4. Could this be read and understood in under 20 seconds?`
+      },
+      vision: {
+        label: 'Image / Vision', tier: 'vision',
+        prompt: `You are an elite assistant specialized in reading and transcribing images — handwritten notes, posters, screenshots, documents, or photos of text — with the accuracy and care of a professional transcriptionist.
+
+RULES:
+- Transcribe text accurately and completely. If handwriting is ambiguous, give your best reading and explicitly flag the uncertain word/phrase (e.g. "[unclear: possibly 'mitochondria']") rather than silently guessing and presenting it as certain.
+- Preserve the original structure in your transcription — headings, bullet points, tables, numbered lists — exactly as visually organized in the image.
+- If asked to clean up or redesign content from the image (e.g. "make this poster look digital/professional"), first transcribe faithfully in full, THEN produce the improved version as a separate section — never skip straight to a "cleaned up" version that might silently lose or alter original content.
+- For diagrams/charts in the image, describe the actual information conveyed (the relationship, the trend, the labeled values) — never just "this is a chart" with no substance.
+- If part of the image is unclear, blurry, or cut off, say exactly which part is unclear rather than filling the gap with invented plausible-sounding content.
+
+EXAMPLE (the standard structure for a request to clean up a handwritten note):
+"**Faithful transcription:**
+[exact text as written, with [unclear: word] flags where genuinely ambiguous]
+
+**Cleaned-up version:**
+[the improved, organized version — clearly separated so nothing from the original gets silently lost or changed]"
+
+SELF-CHECK before finalizing — verify silently, fix anything that fails, don't mention this checklist in your reply:
+1. Is every word transcribed accurately, with genuine uncertainty flagged rather than guessed silently?
+2. Is the original visual structure (lists, headings, tables) preserved in the transcription?
+3. If a cleaned-up version was requested, is the faithful transcription still shown separately first?
+4. Did I flag unclear/cut-off portions instead of inventing plausible content to fill gaps?`
+      }
+    };
+
+    const TASK_MODE_ORDER = ['beast', 'content', 'script', 'code', 'social', 'neet', 'resume', 'translate', 'seo', 'pitch', 'vision'];
+
+    // Keywords that suggest a "mid" request should be bumped to a stronger model.
+    const COMPLEXITY_BUMP_KEYWORDS = [
+      'full', 'complete', 'entire', 'detailed', 'in-depth', 'in depth', 'comprehensive',
+      'long', 'multiple', 'several', 'multi-page', 'multi page', 'website', 'landing page',
+      'app', 'application', 'step by step', 'step-by-step', 'thorough', 'extensive'
+    ];
+
+    let activeTaskMode = null; // key into TASK_MODES, or null for "custom / no mode"
+    let beastModeOn = false; // when true, boosts whichever mode is active with BEAST_MODE_BLOCK + forces the 'step' model tier
+
+    // Finds the best matching real model id from availableModels for a given
+    // tier hint (fast/heavy/step/vision). Falls back to a literal guess if
+    // nothing in availableModels matches yet (e.g. models haven't been
+    // fetched from the provider).
+    function resolveModelForTier(tier) {
+      const hints = MODEL_TIER_HINTS[tier] || [];
+      const pool = (availableModels && availableModels.length) ? availableModels : [];
+      for (const hint of hints) {
+        const found = pool.find(id => id.toLowerCase().includes(hint));
+        if (found) return found;
+      }
+      // Nothing fetched/matched yet — fall back to sensible literal defaults
+      // (these match b.ai's model naming as of the free-tier models Sam has).
+      // 'heavy' falls back to the same model as 'fast': Qwen3.8-Flash is not
+      // auto-routed to anymore (see MODEL_TIER_HINTS comment above).
+      const fallback = {
+        fast: 'DeepSeek-V4-Flash',
+        heavy: 'DeepSeek-V4-Flash',
+        step: 'GLM-5.3-Flash',
+        vision: 'DeepSeek-V4-Flash-Vision-Exp'
+      };
+      return fallback[tier] || fallback.fast;
+    }
+
+    // Decides which model to actually use for this specific turn, given the
+    // active task mode, the user's text, and any attachments.
+    function pickModelForTurn(text, attachments) {
+      const hasImage = (attachments || []).some(a => a.isImage);
+      if (hasImage) return resolveModelForTier('vision');
+
+      const mode = activeTaskMode ? TASK_MODES[activeTaskMode] : null;
+      if (!mode) return beastModeOn ? resolveModelForTier('step') : null; // no mode, but Beast Mode alone still forces the strongest tier
+
+      let tier = mode.tier;
+      if (beastModeOn) tier = 'step'; // Beast Mode always demands the strongest available tier, overriding the mode's own tier
+      else if (tier === 'fast' || tier === 'heavy') {
+        // 'heavy' modes (Script/Code/NEET) used to always get Qwen3.8-Flash
+        // automatically. Now that 'heavy' defaults to the same flash model
+        // as 'fast' (Qwen removed from auto-routing — see MODEL_TIER_HINTS),
+        // they need the same complexity bump so a genuinely complex request
+        // still escalates to the stronger 'step' tier instead of staying
+        // stuck on flash with no way up short of Beast Mode.
+        const lower = (text || '').toLowerCase();
+        const wordCount = (text || '').trim().split(/\s+/).filter(Boolean).length;
+        const looksComplex = wordCount > 60 || COMPLEXITY_BUMP_KEYWORDS.some(k => lower.includes(k));
+        if (looksComplex) tier = 'step';
+      }
+      return resolveModelForTier(tier);
+    }
+
+    function renderModeGrid() {
+      const grid = document.getElementById('modeGrid');
+      const select = document.getElementById('sys-preset');
+      if (!grid || !select) return;
+      grid.innerHTML = '';
+      select.innerHTML = '<option value="">Custom</option>';
+      TASK_MODE_ORDER.forEach((key, idx) => {
+        const m = TASK_MODES[key];
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'mode-card' + (activeTaskMode === key ? ' active' : '');
+        card.style.setProperty('--stagger', idx);
+        card.innerHTML = `<span class="mode-card-icon">${TASK_MODE_ICONS[key]}</span><span class="mode-card-label">${m.label}</span>`;
+        card.addEventListener('click', () => applyTaskMode(key));
+        grid.appendChild(card);
+
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = m.label;
+        select.appendChild(opt);
+      });
+      select.value = activeTaskMode || '';
+    }
+
+    function updateModeModelHint() {
+      const hintEl = document.getElementById('modeModelHint');
+      if (!hintEl) return;
+      if (!activeTaskMode) {
+        hintEl.innerHTML = beastModeOn ? 'uses <b>' + resolveModelForTier('step') + '</b>' : '';
+        return;
+      }
+      const mode = TASK_MODES[activeTaskMode];
+      const tier = beastModeOn ? 'step' : mode.tier;
+      const modelId = resolveModelForTier(tier === 'fast' ? 'fast' : tier);
+      hintEl.innerHTML = 'uses <b>' + modelId + '</b>';
+    }
+
+    // Toggles Beast Mode: boosts whichever task mode is currently active (or
+    // works standalone with no mode selected) by appending BEAST_MODE_BLOCK
+    // to the system prompt and forcing the strongest model tier for the turn.
+    function toggleBeastMode() {
+      beastModeOn = !beastModeOn;
+      const btn = document.getElementById('beastToggle');
+      if (btn) btn.classList.toggle('active', beastModeOn);
+      // Re-run applyTaskMode's prompt logic without changing which mode is
+      // selected — reuse it directly since it already handles both the
+      // "mode selected" and "no mode selected" cases correctly.
+      applyTaskMode(activeTaskMode);
+      try { localStorage.setItem('ai_beast_mode', beastModeOn ? '1' : ''); } catch (e) {}
+      toast(beastModeOn ? '⚡ Beast Mode on — max effort, strongest model' : 'Beast Mode off');
+
+      if (beastModeOn) {
+        // Beast Mode needs the strongest tier to actually exist in
+        // availableModels, or resolveModelForTier silently falls back to a
+        // guessed model id that may not be valid on this account. Refresh
+        // the model list in the background (no popup, no extra toast) so
+        // the routing hint and the real request both use a model we know
+        // is real, without the user having to remember to hit Fetch.
+        refreshAvailableModels({ silent: true }).then(ok => {
+          updateModeModelHint();
+          syncHeaderModelBadgeWithRouting();
+          if (!ok) {
+            // Not a hard error — resolveModelForTier still has literal
+            // fallbacks — but the user should know the hint might be a guess.
+            toast('Could not refresh model list — Beast Mode will guess a model name if needed');
+          }
+        });
+      } else {
+        syncHeaderModelBadgeWithRouting();
+      }
+    }
+
+    // The header badge / sidebar model name normally just mirrors the
+    // manually-picked model (#modelinput). But task-mode routing (and
+    // Beast Mode) can silently send a DIFFERENT model for the next turn —
+    // that mismatch is exactly what looked like a bug (header says
+    // deepseek-v4-flash, "uses" hint says glm-5.3-flash, both are "correct"
+    // but only one is what's actually sent). Keep the badge honest: when
+    // routing is active, show the model that will actually be used; when
+    // it's off, fall back to showing the manually selected model again.
+    function syncHeaderModelBadgeWithRouting() {
+      const routed = pickModelForTurn('', []);
+      const shown = routed || (document.getElementById('modelinput')?.value || '');
+      const badge = document.getElementById('headerModelBadge') || document.querySelector('.header-model-badge') || document.getElementById('modelBadge');
+      if (badge && shown) badge.textContent = shown;
+      const menuModel = document.getElementById('menuModelName');
+      if (menuModel && shown) menuModel.textContent = shown;
+    }
+
+    // Called when a mode card or the compact dropdown is used.
+    function applyTaskMode(key) {
+      activeTaskMode = key || null;
+      const sysTA = document.getElementById('sysinput');
+      if (activeTaskMode && TASK_MODES[activeTaskMode]) {
+        let basePrompt = TASK_MODES[activeTaskMode].prompt;
+        // Don't double-append: the standalone Beast Mode card already contains
+        // BEAST_MODE_BLOCK inline, so only append for the other 10 modes.
+        if (beastModeOn && activeTaskMode !== 'beast') basePrompt += '\n' + BEAST_MODE_BLOCK;
+        sysTA.value = basePrompt;
+      } else {
+        sysTA.value = beastModeOn ? BEAST_MODE_BLOCK.trim() : '';
+      }
+      sysTA.style.height = 'auto';
+      sysTA.style.height = Math.min(sysTA.scrollHeight, 140) + 'px';
+      // Re-trigger the "loaded" flash animation even if the same mode is
+      // picked twice in a row (restarting a CSS animation needs a reflow).
+      sysTA.classList.remove('just-loaded');
+      void sysTA.offsetWidth;
+      sysTA.classList.add('just-loaded');
+      renderModeGrid();
+      updateModeModelHint();
+      syncHeaderModelBadgeWithRouting();
+      try { localStorage.setItem('ai_task_mode', activeTaskMode || ''); } catch (e) {}
+    }
+
+    // Legacy name kept so nothing else that might call it breaks.
+    function loadSysPreset(val) { applyTaskMode(val); }
+
 
     // ── MOBILE VIEWPORT & KEYBOARD SYNC ──
     // html/body/#setup are all `position: fixed; inset: 0`. When the
@@ -4335,6 +4986,17 @@ body.dark-mode .model-select-btn {
         }
       }
       refreshSavedProfilesUI();
+
+      // Task mode grid — render, then restore last-used mode if any.
+      renderModeGrid();
+      try {
+        beastModeOn = !!localStorage.getItem('ai_beast_mode');
+        const beastBtn = document.getElementById('beastToggle');
+        if (beastBtn) beastBtn.classList.toggle('active', beastModeOn);
+        const savedMode = localStorage.getItem('ai_task_mode');
+        if (savedMode && TASK_MODES[savedMode]) applyTaskMode(savedMode);
+        else { applyTaskMode(null); } // still applies BEAST_MODE_BLOCK alone if beastModeOn was restored true
+      } catch (e) { updateModeModelHint(); }
     })();
 
     // ── UI HELPERS ──
@@ -4485,15 +5147,9 @@ body.dark-mode .model-select-btn {
       const p = document.getElementById('sys-panel');
       const opening = !p.classList.contains('visible');
       p.classList.toggle('visible');
-      if (opening) setTimeout(() => document.getElementById('sysinput')?.focus(), 280);
-    }
-
-    function loadSysPreset(val) {
-      if (val) {
-        const sysTA = document.getElementById('sysinput');
-        sysTA.value = val;
-        sysTA.style.height = 'auto';
-        sysTA.style.height = Math.min(sysTA.scrollHeight, 90) + 'px';
+      if (opening) {
+        renderModeGrid(); // re-create cards so the entrance animation replays each time
+        setTimeout(() => document.getElementById('sysinput')?.focus(), 280);
       }
     }
 
@@ -4799,7 +5455,7 @@ body.dark-mode .model-select-btn {
     const sysTA = document.getElementById('sysinput');
     sysTA.addEventListener('input', () => {
       sysTA.style.height = 'auto';
-      sysTA.style.height = Math.min(sysTA.scrollHeight, 90) + 'px';
+      sysTA.style.height = Math.min(sysTA.scrollHeight, 140) + 'px';
     });
 
     // ══════════════════════════════════════════
@@ -5754,15 +6410,15 @@ body.dark-mode .model-select-btn {
     });
 
     // ── SETUP ──
-    async function fetchModels() {
-      const k = document.getElementById('keyinput').value.trim();
-      if (!k) { toast('Enter API key first'); return; }
-      const btn = document.getElementById('loadModelsBtn');
-      const sel = document.getElementById('modelinput');
-      const current = sel.value;
-      btn.textContent = '…'; btn.disabled = true;
+    // Core model-list refresh, shared by the "Fetch" button (which shows UI
+    // feedback) and the silent background refresh triggered by Beast Mode
+    // (which must not pop the picker open or toast on every toggle).
+    // Returns true on success, false on failure — never throws.
+    async function refreshAvailableModels({ silent = false } = {}) {
+      const k = document.getElementById('keyinput')?.value.trim();
+      if (!k) return false;
       try {
-        let modelsUrl = document.getElementById('endpointinput').value.trim();
+        let modelsUrl = document.getElementById('endpointinput')?.value.trim() || '';
         modelsUrl = modelsUrl
           .replace(/\/chat\/completions\/?$/, '/models')
           .replace(/\/v1beta\/openai\/chat\/completions\/?$/, '/v1beta/openai/models');
@@ -5780,31 +6436,33 @@ body.dark-mode .model-select-btn {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         const list = data.data || data.models || (Array.isArray(data) ? data : null);
-        if (list && list.length > 0) {
-          const ids = list.map(m => (typeof m === 'string' ? m : (m.id || m.name))).filter(Boolean);
-          availableModels = ids;
-          // Keep whatever was already selected unless nothing was selected yet
-          if (!current && ids.length > 0) {
-            setSelectedModel(ids[0]);
-          }
-          openModelPicker();
-          toast('Models loaded ✓ — tap one to select');
-        } else {
-          throw new Error('empty');
-        }
+        if (!list || list.length === 0) throw new Error('empty');
+        const ids = list.map(m => (typeof m === 'string' ? m : (m.id || m.name))).filter(Boolean);
+        availableModels = ids;
+        updateModeModelHint();
+        return true;
       } catch (e) {
-        console.warn('fetchModels', e);
-        let msg = e.message || String(e);
-        if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
-          toast('Blocked by CORS — set a CORS Proxy URL below, or pick a model from the defaults');
-        } else if (/^HTTP /.test(msg)) {
-          toast('Fetch failed (' + msg + ') — check your API key, or pick a model from the defaults');
-        } else {
-          toast('Fetch failed — using defaults');
-        }
-      } finally {
-        btn.textContent = 'Fetch'; btn.disabled = false;
+        if (!silent) console.warn('refreshAvailableModels', e);
+        return false;
       }
+    }
+
+    async function fetchModels() {
+      const k = document.getElementById('keyinput').value.trim();
+      if (!k) { toast('Enter API key first'); return; }
+      const btn = document.getElementById('loadModelsBtn');
+      const sel = document.getElementById('modelinput');
+      const current = sel.value;
+      btn.textContent = '…'; btn.disabled = true;
+      const ok = await refreshAvailableModels();
+      if (ok) {
+        if (!current && availableModels.length > 0) setSelectedModel(availableModels[0]);
+        openModelPicker();
+        toast('Models loaded ✓ — tap one to select');
+      } else {
+        toast('Fetch failed — check your API key/endpoint, or CORS — using defaults');
+      }
+      btn.textContent = 'Fetch'; btn.disabled = false;
     }
 
     function handleProviderChange() {
@@ -6113,7 +6771,9 @@ body.dark-mode .model-select-btn {
       const showReasoning = document.getElementById('showReasoning')?.checked !== false;
 
       const liveEndpoint = endpoint || document.getElementById('endpointinput')?.value;
-      const liveModel = model || document.getElementById('modelinput')?.value;
+      const manualModel = model || document.getElementById('modelinput')?.value;
+      const autoModel = pickModelForTurn(text, attachments);
+      const liveModel = autoModel || manualModel; // task-mode routing overrides the manual picker for this turn only
       const liveKey = apiKey || document.getElementById('keyinput')?.value;
 
       if (!liveEndpoint || !liveModel || !liveKey) {
